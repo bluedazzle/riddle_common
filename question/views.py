@@ -26,7 +26,7 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
             answer_list = [{'answer_id': obj.wrong_answer_id, 'answer': obj.wrong_answer},
                            {'answer_id': obj.right_answer_id, 'answer': obj.right_answer}]
             setattr(obj, 'answer_list', answer_list)
-            return objs[0]
+            return obj
 
 
 class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
