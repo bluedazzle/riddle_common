@@ -2,19 +2,7 @@
 
 from __future__ import unicode_literals
 
-import hashlib
-
-import datetime
-import json
-import time
-
-from django.utils.http import cookie_date
-from django.utils.timezone import get_current_timezone
-from django.http import HttpResponseRedirect
-
-from smart_admin.models import Account
-from api.models import Site
-from core.Mixin.StatusWrapMixin import ERROR_PERMISSION_DENIED, ERROR_TOKEN, INFO_EXPIRE
+from core.Mixin.StatusWrapMixin import StatusCode
 
 
 # class CheckSecurityMixin(object):
@@ -127,8 +115,7 @@ class CheckAdminPermissionMixin(object):
     def wrap_check_token_result(self):
         result = self.check_token()
         if not result:
-            self.message = 'token已过期, 请重新登陆'
-            self.status_code = ERROR_TOKEN
+            self.update_status(StatusCode.ERROR_PERMISSION_DENIED)
             return False
         return True
 
@@ -146,30 +133,3 @@ class CheckAdminPermissionMixin(object):
 #             if HAdmin.objects.filter(token=token).exists():
 #                 return super(CheckAdminPagePermissionMixin, self).dispatch(request, *args, **kwargs)
 #         return HttpResponseRedirect('/admin/login')
-
-
-class CheckSiteMixin(object):
-    site = None
-    site_slug = None
-
-    def dispatch(self, request, *args, **kwargs):
-        token = request.COOKIES.get('token', None) or request.GET.get('token', None) or request.POST.get('token', None)
-        queryset = Site.objects.filter(slug=token)
-        if queryset.exists():
-            self.site = queryset[0]
-            self.site_slug = token
-            return super(CheckSiteMixin, self).dispatch(request, *args, **kwargs)
-        self.message = '缺失站点信息'
-        self.status_code = ERROR_PERMISSION_DENIED
-        return self.render_to_response()
-
-    def get_queryset(self):
-        queryset = super(CheckSiteMixin, self).get_queryset()
-        queryset = queryset.filter(belong=self.site)
-        return queryset
-
-    def render_to_response(self, context={}, **response_kwargs):
-        resp = super(CheckSiteMixin, self).render_to_response(context, **response_kwargs)
-        # expire = cookie_date(time.time() + 86400)
-        # resp.set_cookie(key='token', value=self.site_slug, expires=expire)
-        return resp

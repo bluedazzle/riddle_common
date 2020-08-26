@@ -7,7 +7,7 @@ import json
 from django.core.paginator import EmptyPage
 
 from account.models import User
-from core.Mixin.StatusWrapMixin import ERROR_TOKEN
+from core.Mixin.StatusWrapMixin import StatusCode
 from .Serializer import serializer
 from .TimeFormatFactory import TimeFormatFactory
 from core.cache import client_redis_riddle
@@ -61,15 +61,13 @@ class CheckTokenMixin(object):
     def wrap_check_token_result(self):
         result = self.check_token()
         if not result:
-            self.message = '已过期, 请重新登陆'
-            self.status_code = ERROR_TOKEN
+            self.update_status(StatusCode.ERROR_PERMISSION_DENIED)
             return False
         return True
 
     def dispatch(self, request, *args, **kwargs):
-        self.get_current_token()
-        # if not self.wrap_check_token_result():
-        #     return self.render_to_response()
+        if not self.wrap_check_token_result():
+            return self.render_to_response()
         return super(CheckTokenMixin, self).dispatch(request, *args, **kwargs)
 
 
@@ -124,6 +122,14 @@ class FormJsonResponseMixin(JsonResponseMixin):
         context_dict = super(FormJsonResponseMixin, self).context_serialize(context, *args, **kwargs)
         context_dict['form'] = form_list
         return context_dict
+
+    def get_success_url(self):
+        return None
+
+    def form_invalid(self, form):
+        super(FormJsonResponseMixin, self).form_invalid(form)
+        self.update_status(StatusCode.ERROR_FORM)
+        return self.render_to_response(dict(), extra=form.errors)
 
 
 class MultipleJsonResponseMixin(JsonResponseMixin):
