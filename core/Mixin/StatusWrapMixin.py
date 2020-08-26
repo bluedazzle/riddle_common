@@ -57,6 +57,8 @@ class StatusCode(ChoiceBase):
     ERROR_NO_VERIFY = 2003
     ERROR_VERIFY = 2004
 
+    ERROR_QUESTION_ORDER = 3001
+
     __choices__ = (
         (INFO_SUCCESS, u'成功'),
         (ERROR_UNKNOWN, u'未知错误'),
@@ -71,6 +73,7 @@ class StatusCode(ChoiceBase):
         (ERROR_PASSWORD, u'密码错误'),
         (ERROR_NO_VERIFY, u'验证码缺失'),
         (ERROR_VERIFY, u'验证码错误/过期'),
+        (ERROR_QUESTION_ORDER, u'答题顺序不正确'),
     )
 
 

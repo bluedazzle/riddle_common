@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^api/v1/user/', include('account.urls')),
     url(r'^api/v1/finance/', include('finance.urls')),
     url(r'^api/v1/base/', include('baseconf.urls')),
+    url(r'^api/v1/question/', include('question.urls')),
 ]

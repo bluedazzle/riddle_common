@@ -25,7 +25,33 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
 
 class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     model = Question
+    pk_url_kwarg = 'qid'
+
+    def get(self, request, *args, **kwargs):
+        obj = self.get_object()
+        aid = int(request.GET.get('answer', 0))
+        if self.user.current_level != obj.order_id:
+            self.update_status(StatusCode.ERROR_QUESTION_ORDER)
+            return self.render_to_response()
+        # todo 这一步还应该下发一个唯一 id，确保 StimulateView 不被随意调用
+        if obj.right_answer_id != aid:
+            return self.render_to_response({'answer': False})
+        return self.render_to_response({'answer': True})
 
 
 class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
-    pass
+    model = Question
+    pk_url_kwarg = 'qid'
+
+    def get(self, request, *args, **kwargs):
+        obj = self.get_object()
+        # todo 只是简单让关卡继续，没有做积分逻辑
+        is_watch = int(request.GET.get('is_watch_video', 0))
+        if self.user.current_level != obj.order_id:
+            self.update_status(StatusCode.ERROR_QUESTION_ORDER)
+            return self.render_to_response()
+        if self.user.current_level == 4:
+            self.user.current_level = 0
+        self.user.current_level += 1
+        self.user.save()
+        return self.render_to_response()

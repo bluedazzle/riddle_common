@@ -38,7 +38,7 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
         user.token = self.create_token()
         user.name = self.create_name()
         user.save()
-        return self.render_to_response(user)
+        return self.render_to_response({'user': user})
 
     def create_name(self):
         name = '游客' + string.join(random.sample('1234567890', 7)).replace(" ", "")
