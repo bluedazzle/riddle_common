@@ -15,11 +15,17 @@ from question.models import Question
 
 class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     model = Question
+    exclude_attr = ['wrong_answer_id', 'wrong_answer', 'right_answer', 'right_answer_id']
 
     def get_object(self, queryset=None):
         current_level = self.user.current_level
         objs = self.model.objects.filter(order_id=current_level).all()
         if objs.exists():
+            obj = objs[0]
+            # todo 这里需要随机一下答案顺序
+            answer_list = [{'answer_id': obj.wrong_answer_id, 'answer': obj.wrong_answer},
+                           {'answer_id': obj.right_answer_id, 'answer': obj.right_answer}]
+            setattr(obj, 'answer_list', answer_list)
             return objs[0]
 
 
