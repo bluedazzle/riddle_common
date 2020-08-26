@@ -15,3 +15,18 @@ class Song(BaseModel):
 
     def __unicode__(self):
         return '{0}'.format(self.name)
+
+
+class Question(BaseModel):
+    title = models.CharField(max_length=100, default='')
+    order_id = models.IntegerField(unique=True)
+    question_type = models.IntegerField(default=1)
+    difficult = models.IntegerField(default=1)
+    right_answer_id = models.IntegerField()
+    right_answer = models.CharField(max_length=100)
+    wrong_answer_id = models.IntegerField()
+    wrong_answer = models.CharField(max_length=100)
+    resource_url = models.CharField(max_length=256)
+
+    def __unicode__(self):
+        return '{0}'.format(self.title)

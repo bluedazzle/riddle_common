@@ -7,9 +7,9 @@ from core.pyutil.net import is_python3
 def get_interface_ip(ifname):
     import socket
     import struct
-    from fcntl import ioctl
-    SIOCGIFADDR = 0x8915
     try:
+        from fcntl import ioctl
+        SIOCGIFADDR = 0x8915
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         if is_python3:
             addr = ioctl(s.fileno(), SIOCGIFADDR, struct.pack('256s', ifname[:15].encode('utf-8')))

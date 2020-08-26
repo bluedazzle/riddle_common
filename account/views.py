@@ -32,15 +32,16 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
     count = 32
 
     def post(self, request, *args, **kwargs):
-        device_id = request.POST.get('device_id')
+        device_id = request.POST.get('device_id', '')
         user = User()
         user.device_id = device_id
         user.token = self.create_token()
         user.name = self.create_name()
         user.save()
+        return self.render_to_response(user)
 
     def create_name(self):
-        name = '游客'
+        name = '游客' + string.join(random.sample('1234567890', 7)).replace(" ", "")
         return name
 
     def create_token(self):
