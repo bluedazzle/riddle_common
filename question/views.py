@@ -53,7 +53,6 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
     high_range = conf.get('high_range', 1.5)
     const_num = conf.get('const_num', 0)
 
-
     def get(self, request, *args, **kwargs):
         obj = self.get_object()
         aid = int(request.GET.get('answer', 0))
@@ -63,16 +62,19 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         tag = string.join(
             random.sample('ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
                           self.count)).replace(" ", "")
-        client_redis_riddle.set(self.user.id, tag)
-        if obj.right_answer_id != aid:
-            return self.render_to_response({'answer': False, 'coin': 0})
+        client_redis_riddle.set(str(self.user.id) + 'tag', tag)
         rand_num = random.random() * (self.high_range - self.low_range) + self.low_range
         coin = int(((2 * self.round_coin / self.round_count) -
-                self.user.current_step * (2 * self.round_coin / self.round_count) / self.round_count) \
-               * rand_num + self.const_num)
-        self.user.current_step += 1
+                    self.user.current_step * (2 * self.round_coin / self.round_count) / self.round_count)
+                   * rand_num + self.const_num)
+        if self.user.current_step == self.round_count and self.user.coin < self.round_coin:
+            coin = self.round_coin - self.user.coin
+        client_redis_riddle.set(str(self.user.id) + 'coin', coin)
+        if obj.right_answer_id != aid:
+            return self.render_to_response({'answer': False, 'coin': 0})
         if self.user.current_step == self.round_count:
             self.user.current_step = 0
+        self.user.current_step += 1
         self.user.coin += coin
         self.user.save()
         return self.render_to_response({'answer': True, 'coin': coin})
@@ -89,10 +91,11 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
             self.update_status(StatusCode.ERROR_QUESTION_ORDER)
             return self.render_to_response()
         tag = request.GET.get('tag', '0')
-        if tag != client_redis_riddle.get(self.user.id):
+        if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
             self.update_status(StatusCode.ERROR_STIMULATE_TAG)
             return self.render_to_response()
-        client_redis_riddle.delete(self.user.id)
+        client_redis_riddle.delete(str(self.user.id) + 'tag')
+        client_redis_riddle.delete(str(self.user.id) + 'coin')
         if self.user.current_level == 4:
             self.user.current_level = 0
         self.user.current_level += 1
