@@ -56,6 +56,7 @@ class StatusCode(ChoiceBase):
     ERROR_PASSWORD = 2002
     ERROR_NO_VERIFY = 2003
     ERROR_VERIFY = 2004
+    ERROR_PHONE_EXIST = 2005
 
     ERROR_QUESTION_ORDER = 3001
 
@@ -74,6 +75,7 @@ class StatusCode(ChoiceBase):
         (ERROR_NO_VERIFY, u'验证码缺失'),
         (ERROR_VERIFY, u'验证码错误/过期'),
         (ERROR_QUESTION_ORDER, u'答题顺序不正确'),
+        (ERROR_PHONE_EXIST, u'手机号已存在'),
     )
 
 
