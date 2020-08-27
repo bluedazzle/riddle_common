@@ -58,6 +58,7 @@ class StatusCode(ChoiceBase):
     ERROR_VERIFY = 2004
 
     ERROR_QUESTION_ORDER = 3001
+    ERROR_STIMULATE_TAG = 3002
 
     __choices__ = (
         (INFO_SUCCESS, u'成功'),
@@ -74,6 +75,7 @@ class StatusCode(ChoiceBase):
         (ERROR_NO_VERIFY, u'验证码缺失'),
         (ERROR_VERIFY, u'验证码错误/过期'),
         (ERROR_QUESTION_ORDER, u'答题顺序不正确'),
+        (ERROR_STIMULATE_TAG, u'激励验证错误'),
     )
 
 

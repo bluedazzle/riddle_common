@@ -12,6 +12,11 @@ from core.dss.Serializer import serializer
 class GlobalConf(BaseModel):
     coin_cash_proportion = models.IntegerField(default=1000)
     total_level = models.IntegerField(default=800)
+    round_coin = models.IntegerField(default=3000)
+    round_count = models.IntegerField(default=50)
+    low_range = models.FloatField(default=0.5)
+    high_range = models.FloatField(default=1.5)
+    const_num = models.IntegerField(default=0)
 
     def __unicode__(self):
         return '{0}'.format(self.create_time)
