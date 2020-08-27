@@ -56,6 +56,7 @@ class StatusCode(ChoiceBase):
     ERROR_PASSWORD = 2002
     ERROR_NO_VERIFY = 2003
     ERROR_VERIFY = 2004
+    ERROR_PHONE_EXIST = 2005
 
     ERROR_QUESTION_ORDER = 3001
     ERROR_STIMULATE_TAG = 3002
@@ -76,6 +77,7 @@ class StatusCode(ChoiceBase):
         (ERROR_VERIFY, u'验证码错误/过期'),
         (ERROR_QUESTION_ORDER, u'答题顺序不正确'),
         (ERROR_STIMULATE_TAG, u'激励验证错误'),
+        (ERROR_PHONE_EXIST, u'手机号已存在'),
     )
 
 

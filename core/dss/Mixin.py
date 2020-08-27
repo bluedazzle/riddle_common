@@ -42,6 +42,7 @@ class RespCacheMixin(object):
 class CheckTokenMixin(object):
     token = None
     user = None
+    force_check = True
 
     def get_current_token(self):
         self.token = self.request.GET.get('token', None) or self.request.POST.get('token', None)
@@ -61,12 +62,13 @@ class CheckTokenMixin(object):
     def wrap_check_token_result(self):
         result = self.check_token()
         if not result:
-            self.update_status(StatusCode.ERROR_PERMISSION_DENIED)
+            if self.force_check:
+                self.update_status(StatusCode.ERROR_PERMISSION_DENIED)
             return False
         return True
 
     def dispatch(self, request, *args, **kwargs):
-        if not self.wrap_check_token_result():
+        if not self.wrap_check_token_result() and self.force_check:
             return self.render_to_response()
         return super(CheckTokenMixin, self).dispatch(request, *args, **kwargs)
 

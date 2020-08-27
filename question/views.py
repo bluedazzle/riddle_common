@@ -19,20 +19,27 @@ from question.models import Question
 class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     model = Question
     exclude_attr = ['wrong_answer_id', 'wrong_answer', 'right_answer', 'right_answer_id']
+    pk_url_kwarg = 'qid'
 
     def get_object(self, queryset=None):
-        current_level = self.user.current_level
-        objs = self.model.objects.filter(order_id=current_level).all()
-        if objs.exists():
-            obj = objs[0]
-            if random.random() > 0.5:
-                answer_list = [{'answer_id': obj.wrong_answer_id, 'answer': obj.wrong_answer},
-                               {'answer_id': obj.right_answer_id, 'answer': obj.right_answer}]
-            else:
-                answer_list = [{'answer_id': obj.right_answer_id, 'answer': obj.right_answer},
-                               {'answer_id': obj.wrong_answer_id, 'answer': obj.wrong_answer}]
-            setattr(obj, 'answer_list', answer_list)
+        obj = None
+        if self.kwargs.get(self.pk_url_kwarg, None):
+            obj = super(FetchQuestionView, self).get_object(queryset)
+        else:
+            current_level = self.user.current_level
+            objs = self.model.objects.filter(order_id=current_level).all()
+            if objs.exists():
+                obj = objs[0]
+        if not obj:
             return obj
+        if random.random() > 0.5:
+            answer_list = [{'answer_id': obj.wrong_answer_id, 'answer': obj.wrong_answer},
+                           {'answer_id': obj.right_answer_id, 'answer': obj.right_answer}]
+        else:
+            answer_list = [{'answer_id': obj.right_answer_id, 'answer': obj.right_answer},
+                           {'answer_id': obj.wrong_answer_id, 'answer': obj.wrong_answer}]
+        setattr(obj, 'answer_list', answer_list)
+        return obj
 
 
 class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
