@@ -1,0 +1,8 @@
+# coding: utf-8
+from __future__ import unicode_literals
+
+DEFAULT_ALLOW_CASH_COUNT = 30000
+DEFAULT_COIN_CASH_PROPORTION = 1000
+TOTAL_LEVEL = 800
+ROUND_COIN = 3000
+ROUND_COUT = 50

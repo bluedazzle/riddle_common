@@ -61,6 +61,8 @@ class StatusCode(ChoiceBase):
     ERROR_QUESTION_ORDER = 3001
     ERROR_STIMULATE_TAG = 3002
 
+    ERROR_NOT_ALLOW_CASH = 4000
+
     __choices__ = (
         (INFO_SUCCESS, u'成功'),
         (ERROR_UNKNOWN, u'未知错误'),
@@ -78,6 +80,7 @@ class StatusCode(ChoiceBase):
         (ERROR_QUESTION_ORDER, u'答题顺序不正确'),
         (ERROR_STIMULATE_TAG, u'激励验证错误'),
         (ERROR_PHONE_EXIST, u'手机号已存在'),
+        (ERROR_NOT_ALLOW_CASH, u'未到提现门槛'),
     )
 
 

@@ -7,8 +7,8 @@ import requests
 from django.core.cache import cache
 from django.utils import timezone
 
-APP_KEY = 'wx55112dd988c846bf'
-APP_SECRET = '0e78a9e464f5879534c7d411def6d30c'
+APP_KEY = 'wx0a70602b8b19b1e5'
+APP_SECRET = '77b167cb1b9f4cc491010207d79b4f61'
 
 
 def get_access_token(source='riddle'):

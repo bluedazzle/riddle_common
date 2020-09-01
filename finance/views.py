@@ -8,6 +8,7 @@ from django.views.generic import ListView
 from django.db import transaction
 
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
+from core.consts import DEFAULT_ALLOW_CASH_COUNT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin
 from core.utils import get_global_conf
 from finance.forms import CashRecordForm, ExchangeRecordForm
@@ -45,8 +46,14 @@ class ExchangeRecordListView(CheckTokenMixin, StatusWrapMixin, MultipleJsonRespo
 class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, CreateView):
     form_class = CashRecordForm
     http_method_names = ['post']
+    conf = {}
 
     def form_valid(self, form):
+        self.conf = get_global_conf()
+        allow_cash_count = self.conf.get("allow_cash_count", DEFAULT_ALLOW_CASH_COUNT)
+        if self.user.cash < allow_cash_count:
+            self.update_status(StatusCode.ERROR_NOT_ALLOW_CASH)
+            return self.render_to_response()
         super(CreateCashRecordView, self).form_valid(form)
         cash_record = form.save()
         cash_record.belong = self.user
