@@ -101,3 +101,27 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
         self.user.current_level += 1
         self.user.save()
         return self.render_to_response()
+
+
+class WatchVideoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = Question
+    pk_url_kwarg = 'qid'
+
+    def post(self, request, *args, **kwargs):
+        obj = self.get_object()
+        if self.user.current_level != obj.order_id:
+            self.update_status(StatusCode.ERROR_QUESTION_ORDER)
+            return self.render_to_response()
+        tag = request.GET.get('tag', '0')
+        if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
+            self.update_status(StatusCode.ERROR_STIMULATE_TAG)
+            return self.render_to_response()
+        coin = request.GET.get('coin', 0)
+        self.user.coin += coin
+        client_redis_riddle.delete(str(self.user.id) + 'tag')
+        client_redis_riddle.delete(str(self.user.id) + 'coin')
+        if self.user.current_level == 4:
+            self.user.current_level = 0
+        self.user.current_level += 1
+        self.user.save()
+        return self.render_to_response(isValid=True)

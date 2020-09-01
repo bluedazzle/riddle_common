@@ -207,3 +207,6 @@ fabfile.py
 
 # sqlite file
 *.db
+
+# docker compose
+docker-compose.yml
