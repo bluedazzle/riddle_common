@@ -46,14 +46,15 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
     model = Question
     pk_url_kwarg = 'qid'
     count = 32
-    conf = get_global_conf()
-    round_coin = conf.get('round_coin', 3000)
-    round_count = conf.get('round_count', 50)
-    low_range = conf.get('low_range', 0.5)
-    high_range = conf.get('high_range', 1.5)
-    const_num = conf.get('const_num', 0)
+    conf = {}
 
     def get(self, request, *args, **kwargs):
+        self.conf = get_global_conf()
+        round_coin = self.conf.get('round_coin', 3000)
+        round_count = self.conf.get('round_count', 50)
+        low_range = self.conf.get('low_range', 0.5)
+        high_range = self.conf.get('high_range', 1.5)
+        const_num = self.conf.get('const_num', 0)
         obj = self.get_object()
         aid = int(request.GET.get('answer', 0))
         if self.user.current_level != obj.order_id:
@@ -63,16 +64,16 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
             random.sample('ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
                           self.count)).replace(" ", "")
         client_redis_riddle.set(str(self.user.id) + 'tag', tag)
-        rand_num = random.random() * (self.high_range - self.low_range) + self.low_range
-        coin = int(((2 * self.round_coin / self.round_count) -
-                    self.user.current_step * (2 * self.round_coin / self.round_count) / self.round_count)
-                   * rand_num + self.const_num)
-        if self.user.current_step == self.round_count and self.user.coin < self.round_coin:
-            coin = self.round_coin - self.user.coin
+        rand_num = random.random() * (high_range - low_range) + low_range
+        coin = int(((2 * round_coin / round_count) -
+                    self.user.current_step * (2 * round_coin / round_count) / round_count)
+                   * rand_num + const_num)
+        if self.user.current_step == round_count and self.user.coin < round_coin:
+            coin = round_coin - self.user.coin
         client_redis_riddle.set(str(self.user.id) + 'coin', coin)
         if obj.right_answer_id != aid:
             return self.render_to_response({'answer': False, 'coin': 0})
-        if self.user.current_step == self.round_count:
+        if self.user.current_step == round_count:
             self.user.current_step = 0
         self.user.current_step += 1
         self.user.coin += coin
@@ -116,7 +117,7 @@ class WatchVideoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
         if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
             self.update_status(StatusCode.ERROR_STIMULATE_TAG)
             return self.render_to_response()
-        coin = request.GET.get('coin', 0)
+        coin = client_redis_riddle.get(str(self.user.id) + 'coin')
         self.user.coin += coin
         client_redis_riddle.delete(str(self.user.id) + 'tag')
         client_redis_riddle.delete(str(self.user.id) + 'coin')

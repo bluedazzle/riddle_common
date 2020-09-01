@@ -27,7 +27,7 @@ SECRET_KEY = '+matthg$w)x_5#ax0uug(jdy0)@^5(a)%w6mr$bmbcsac-n7x4'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['202.112.237.65']
 
 # Application definition
 
@@ -79,23 +79,23 @@ WSGI_APPLICATION = 'Riddle.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': conf.riddle_name,
-#         'USER': conf.riddle_user,
-#         'PASSWORD': conf.riddle_password,
-#         'HOST': conf.riddle_host,
-#         'PORT': conf.riddle_port,
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'riddle.db'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': conf.riddle_name,
+        'USER': conf.riddle_user,
+        'PASSWORD': conf.riddle_password,
+        'HOST': conf.riddle_host,
+        'PORT': conf.riddle_port,
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'riddle.db'),
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
