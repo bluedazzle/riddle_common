@@ -33,6 +33,18 @@ def song_init(execl, songs = 0):
 def question_init(execl, questions = 0):
     model = Question
     df = pd.read_excel(execl, sheet_name=u'曲库表')
+    infos = df.ix[:, [u'歌手名', u'歌曲名', u'容易度', u'错误歌曲名']]
+    if questions == 0:
+        lines = len(infos[u'歌手名'])
+    else:
+        lines = questions
+    for line in range(lines):
+        url = prefix + pingyin(infos[u'歌手名'][line]) + '_' + pingyin(infos[u'歌曲名'][line]) + '.m4a'
+        obj = model(title=u'猜猜这首歌叫什么', order_id=line, question_type=1, difficult=infos[u'容易度'][line],
+                    right_answer_id=1, right_answer=infos[u'歌曲名'][line],
+                    wrong_answer_id=2, wrong_answer=infos[u'错误歌曲名'][line], resource_url=url)
+        obj.save()
 
 if __name__ == "__main__":
     song_init('进度表及曲库.xlsx', 10)
+    question_init('进度表及曲库.xlsx', 10)

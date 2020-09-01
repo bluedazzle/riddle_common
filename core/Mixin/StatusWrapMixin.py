@@ -92,15 +92,16 @@ class StatusWrapMixin(object):
         self.status_code = key
         self.message = StatusCode.get_value(key)
 
-    def render_to_response(self, context={}, extra={}, **response_kwargs):
+    def render_to_response(self, context={}, extra={}, isValid=False, **response_kwargs):
         context_dict = self.context_serialize(context)
-        json_context = self.json_serializer(self.wrapper(context_dict, extra))
+        json_context = self.json_serializer(self.wrapper(context_dict, extra, isValid))
         return HttpResponse(json_context, content_type='application/json', **response_kwargs)
 
-    def wrapper(self, context, extra):
+    def wrapper(self, context, extra, isValid):
         return_data = dict()
         return_data['data'] = context
         return_data['extra'] = extra
+        return_data['isValid'] = isValid
         return_data['code'] = self.status_code
         return_data['msg'] = self.message
         if self.status_code != StatusCode.INFO_SUCCESS:
