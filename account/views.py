@@ -4,9 +4,11 @@ from __future__ import unicode_literals
 import random
 import string
 
+import datetime
 from django.shortcuts import render
 
 # Create your views here.
+from django.utils import timezone
 from django.views.generic import CreateView
 from django.views.generic import DetailView
 from django.views.generic import FormView
@@ -22,8 +24,8 @@ from core.wx import get_access_token_by_code, get_user_info
 class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, DetailView):
     model = User
     slug_field = 'token'
-
-    # exclude_attr = ['']
+    datetime_type = 'timestamp'
+    http_method_names = ['get']
 
     def get(self, request, *args, **kwargs):
         self.kwargs['slug'] = self.token
@@ -33,6 +35,8 @@ class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, 
 class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
     model = User
     count = 32
+    http_method_names = ['post']
+    datetime_type = 'timestamp'
 
     def post(self, request, *args, **kwargs):
         device_id = request.POST.get('device_id', '')
@@ -40,6 +44,7 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
         user.device_id = device_id
         user.token = self.create_token()
         user.name = self.create_name()
+        user.expire_time = timezone.now() + datetime.timedelta(days=3)
         user.save()
         return self.render_to_response({'user': user})
 
@@ -57,6 +62,7 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
 
 class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     force_check = False
+    http_method_names = ['post']
 
     def get(self, request, *args, **kwargs):
         try:

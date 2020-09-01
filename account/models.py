@@ -27,7 +27,7 @@ class User(BaseModel):
     cash = models.IntegerField(default=0)
     current_level = models.IntegerField(default=1)
     current_step = models.IntegerField(default=1)
-    expire_time = models.IntegerField(default=0)
+    expire_time = models.DateTimeField(default=timezone.now)
     right_count = models.IntegerField(default=0)
     wrong_count = models.IntegerField(default=0)
     device_id = models.CharField(max_length=128, default='', null=True, blank=True)
