@@ -71,8 +71,9 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
                           self.count)).replace(" ", "")
         client_redis_riddle.set(str(self.user.id) + 'tag', tag)
         rand_num = random.random() * (high_range - low_range) + low_range
-        cash = ((2 * round_cash / round_count) -
-                    self.user.current_step * (2 * round_cash / round_count) / round_count) * rand_num + const_num
+        cash = int(((2 * round_cash / round_count) -
+                    self.user.current_step * (2 * round_cash / round_count) / round_count)\
+               * rand_num + const_num)
         if self.user.current_step == round_count and self.user.cash < round_cash:
             cash = round_cash - self.user.cash
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
@@ -127,16 +128,14 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
         return True
 
     def get(self, request, *args, **kwargs):
-        print 11111111111111111111
         obj = None
         extra = request.GET.get('extra',{})
         info = json.loads(extra)
         token = info['token']
-        print token
         if not self.check_token_result(token):
             return self.render_to_response()
         qid = info['question_id']
-        objs = self.model.objects.filter(order_id=qid).all()
+        objs = self.model.objects.filter(id=qid).all()
         if objs.exists():
             obj = objs[0]
         if not obj:
@@ -150,7 +149,7 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
             self.update_status(StatusCode.ERROR_STIMULATE_TAG)
             return JsonResponse({'isValid': False})
         cash = client_redis_riddle.get(str(self.user.id) + 'cash')
-        self.user.cash += cash
+        self.user.cash += int(cash)
         client_redis_riddle.delete(str(self.user.id) + 'tag')
         client_redis_riddle.delete(str(self.user.id) + 'cash')
         # todo 正式上线去掉 or 增加
