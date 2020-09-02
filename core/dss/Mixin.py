@@ -45,7 +45,7 @@ class CheckTokenMixin(object):
     force_check = True
 
     def get_current_token(self):
-        self.token = self.request.GET.get('token', None) or self.request.POST.get('token', None) or self.request.GET.get('extra', None).get('token', None)
+        self.token = self.request.GET.get('token', None) or self.request.POST.get('token', None)
         if not self.token:
             self.token = self.request.session.get(
                 'token', '')

@@ -61,6 +61,7 @@ class StatusCode(ChoiceBase):
 
     ERROR_QUESTION_ORDER = 3001
     ERROR_STIMULATE_TAG = 3002
+    ERROR_QUESTION_NONE = 3003
 
     ERROR_NOT_ALLOW_CASH = 4000
     ERROR_REPEAT_NEW_PACKET = 4001
@@ -81,6 +82,7 @@ class StatusCode(ChoiceBase):
         (ERROR_VERIFY, u'验证码错误/过期'),
         (ERROR_QUESTION_ORDER, u'答题顺序不正确'),
         (ERROR_STIMULATE_TAG, u'激励验证错误'),
+        (ERROR_QUESTION_NONE, u'答题序号不存在'),
         (ERROR_PHONE_EXIST, u'手机号已存在'),
         (ERROR_NOT_ALLOW_CASH, u'未到提现门槛'),
         (ERROR_PHONE_BIND, u'账号已绑定手机'),

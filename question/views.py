@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import random
 import string
+import json
 
 # Create your views here.
 from django.http import JsonResponse
@@ -12,6 +13,7 @@ from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonR
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle
 from question.models import Question
+from account.models import User
 
 
 class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
@@ -57,7 +59,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         obj = self.get_object()
         aid = int(request.GET.get('answer', 0))
         if self.user.current_level != obj.order_id:
-            print self.user.current_level, obj.order_id
+            # print self.user.current_level, obj.order_id
             self.update_status(StatusCode.ERROR_QUESTION_ORDER)
             return self.render_to_response()
         tag = string.join(
@@ -65,15 +67,19 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
                           self.count)).replace(" ", "")
         client_redis_riddle.set(str(self.user.id) + 'tag', tag)
         rand_num = random.random() * (high_range - low_range) + low_range
-        cash = ((2 * round_cash / round_count) -
-                    self.user.current_step * (2 * round_cash / round_count) / round_count) * rand_num + const_num
+        cash = int(((2 * round_cash / round_count) -
+                    self.user.current_step * (2 * round_cash / round_count) / round_count)\
+               * rand_num + const_num)
         if self.user.current_step == round_count and self.user.cash < round_cash:
             cash = round_cash - self.user.cash
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
         if obj.right_answer_id != aid:
+            self.user.wrong_count += 1
+            self.user.save()
             return self.render_to_response({'answer': False, 'tag': tag, 'cash': 0})
         if self.user.current_step == round_count:
             self.user.current_step = 0
+        self.user.right_count += 1
         self.user.current_step += 1
         self.user.cash += cash
         self.user.save()
@@ -105,23 +111,52 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
 
 class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
     model = Question
-    pk_url_kwarg = 'qid'
+
+    def check_token(self, token):
+        user_list = User.objects.filter(token=token)
+        if user_list.exists():
+            self.user = user_list[0]
+            return True
+        return False
+
+    def check_token_result(self, token):
+        result = self.check_token(token)
+        if not result:
+            self.update_status(StatusCode.ERROR_PERMISSION_DENIED)
+            return False
+        return True
+
+    def parse_data(self, data):
+        import urlparse
+        resp = urlparse.unquote(data)
+        return resp
 
     def get(self, request, *args, **kwargs):
-        print '1'
-        return self.render_to_response()
-
-    def post(self, request, *args, **kwargs):
-        obj = self.get_object()
+        obj = None
+        extra = request.GET.get('extra', '')
+        if not extra:
+            return JsonResponse({'isValid': False})
+        extra = self.parse_data(extra)
+        info = json.loads(extra)
+        token = info['token']
+        if not self.check_token_result(token):
+            return JsonResponse({'isValid': False})
+        qid = info['question_id']
+        objs = self.model.objects.filter(id=qid).all()
+        if objs.exists():
+            obj = objs[0]
+        if not obj:
+            self.update_status(StatusCode.ERROR_QUESTION_NONE)
+            return JsonResponse({'isValid': False})
         if self.user.current_level != obj.order_id:
             self.update_status(StatusCode.ERROR_QUESTION_ORDER)
             return JsonResponse({'isValid': False})
-        tag = request.GET.get('tag', '0')
+        tag = info['tag']
         if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
             self.update_status(StatusCode.ERROR_STIMULATE_TAG)
             return JsonResponse({'isValid': False})
         cash = client_redis_riddle.get(str(self.user.id) + 'cash')
-        self.user.cash += cash
+        self.user.cash += int(cash)
         client_redis_riddle.delete(str(self.user.id) + 'tag')
         client_redis_riddle.delete(str(self.user.id) + 'cash')
         # todo 正式上线去掉 or 增加
