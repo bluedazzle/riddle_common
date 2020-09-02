@@ -62,7 +62,7 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
 
 class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     force_check = False
-    http_method_names = ['post']
+    # http_method_names = ['post']
 
     def get(self, request, *args, **kwargs):
         try:
@@ -100,7 +100,7 @@ class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVie
             return self.render_to_response({'user': self.user})
         except Exception as e:
             self.update_status(StatusCode.ERROR_DATA)
-            self.render_to_response(extra={'error': e.message})
+            return self.render_to_response(extra={'error': e.message})
 
 
 class VerifyCodeView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, FormView):
