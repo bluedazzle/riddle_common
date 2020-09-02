@@ -101,7 +101,7 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
     def post(self, request, *args, **kwargs):
         obj = self.get_object()
         # todo 只是简单让关卡继续，没有做积分逻辑
-        if self.user.current_level != obj.order_id:
+        if self.user.current_level - 1 != obj.order_id:
             self.update_status(StatusCode.ERROR_QUESTION_ORDER)
             return self.render_to_response()
         tag = request.GET.get('tag', '0')
@@ -110,10 +110,10 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
             return self.render_to_response()
         client_redis_riddle.delete(str(self.user.id) + 'tag')
         client_redis_riddle.delete(str(self.user.id) + 'cash')
-        if self.user.current_level == 100:
-            self.user.current_level = 0
-        self.user.current_level += 1
-        self.user.save()
+        # if self.user.current_level == 100:
+        #     self.user.current_level = 0
+        # self.user.current_level += 1
+        # self.user.save()
         return self.render_to_response()
 
 
