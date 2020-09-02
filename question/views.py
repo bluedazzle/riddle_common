@@ -73,6 +73,8 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         if self.user.current_step == round_count and self.user.cash < round_cash:
             cash = round_cash - self.user.cash
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
+        # todo 这里去掉
+        cash = 100
         if obj.right_answer_id != aid:
             self.user.wrong_count += 1
             self.user.save()
