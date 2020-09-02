@@ -5,6 +5,8 @@ import string
 
 # Create your views here.
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
+from django.http import JsonResponse
 from django.views.generic import CreateView
 from django.views.generic import DetailView
 from django.db import transaction
@@ -113,17 +115,18 @@ class WatchVideoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
         obj = self.get_object()
         if self.user.current_level != obj.order_id:
             self.update_status(StatusCode.ERROR_QUESTION_ORDER)
-            return self.render_to_response()
+            return JsonResponse({'isValid': False})
         tag = request.GET.get('tag', '0')
         if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
             self.update_status(StatusCode.ERROR_STIMULATE_TAG)
-            return self.render_to_response()
+            return JsonResponse({'isValid': False})
         coin = client_redis_riddle.get(str(self.user.id) + 'coin')
         self.user.coin += coin
         client_redis_riddle.delete(str(self.user.id) + 'tag')
         client_redis_riddle.delete(str(self.user.id) + 'coin')
+        # todo 正式上线去掉 or 增加
         if self.user.current_level == 100:
             self.user.current_level = 0
         self.user.current_level += 1
         self.user.save()
-        return self.render_to_response(isValid=True)
+        return JsonResponse({'isValid': True})
