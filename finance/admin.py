@@ -4,3 +4,4 @@ from finance.models import *
 
 admin.site.register(CashRecord)
 admin.site.register(ExchangeRecord)
+admin.site.register(RedPacket)
