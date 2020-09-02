@@ -51,28 +51,5 @@ class Command(BaseCommand):
             obj.save()
 
     def handle(self, *args, **options):
-        self.song_init(u'进度表及曲库.xlsx', 10)
-        self.question_init(u'进度表及曲库.xlsx', 10)
-
-# def pingyin(word):
-#         s = ''
-#         for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
-#             s += ''.join(i)
-#         return s
-#
-# def song_init(execl, songs=0):
-#         # model = Song
-#         df = pd.read_excel(execl, sheet_name=u'曲库表')
-#         infos = df.ix[:, [u'歌手名', u'歌曲名']]
-#         if songs == 0:
-#             lines = len(infos[u'歌手名'])
-#         else:
-#             lines = songs
-#         for line in range(lines):
-#             url = prefix + pingyin(infos[u'歌手名'][line]) + '_' + pingyin(infos[u'歌曲名'][line]) + '.m4a'
-#             print url
-#
-#
-# if __name__ == "__main__":
-#     song_init(u'进度表及曲库.xlsx', 10)
-    # question_init(u'进度表及曲库.xlsx', 10)
+        self.song_init(u'question/management/commands/进度表及曲库.xlsx', 10)
+        self.question_init(u'question/management/commands/进度表及曲库.xlsx', 10)
