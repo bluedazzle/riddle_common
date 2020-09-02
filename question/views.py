@@ -82,6 +82,9 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         self.user.right_count += 1
         self.user.current_step += 1
         self.user.cash += cash
+        if self.user.current_level == 100:
+            self.user.current_level = 0
+        self.user.current_level += 1
         self.user.save()
         return self.render_to_response({'answer': True, 'tag': tag, 'cash': cash})
 
@@ -148,9 +151,9 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
         if not obj:
             self.update_status(StatusCode.ERROR_QUESTION_NONE)
             return JsonResponse({'isValid': False})
-        if self.user.current_level != obj.order_id:
-            self.update_status(StatusCode.ERROR_QUESTION_ORDER)
-            return JsonResponse({'isValid': False})
+        # if self.user.current_level != obj.order_id:
+        #     self.update_status(StatusCode.ERROR_QUESTION_ORDER)
+        #     return JsonResponse({'isValid': False})
         tag = info['tag']
         if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
             self.update_status(StatusCode.ERROR_STIMULATE_TAG)
@@ -160,8 +163,5 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
         client_redis_riddle.delete(str(self.user.id) + 'tag')
         client_redis_riddle.delete(str(self.user.id) + 'cash')
         # todo 正式上线去掉 or 增加
-        if self.user.current_level == 100:
-            self.user.current_level = 0
-        self.user.current_level += 1
         self.user.save()
         return JsonResponse({'isValid': True})
