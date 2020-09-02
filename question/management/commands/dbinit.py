@@ -48,7 +48,7 @@ class Command(BaseCommand):
             objs = model.objects.filter(resource_url=url).all()
             if objs.exists():
                 continue
-            obj = model(title=u'猜猜这首歌叫什么', order_id=line, question_type=1, difficult=infos[u'容易度'][line],
+            obj = model(title=u'猜猜这首歌叫什么', order_id=line+1, question_type=1, difficult=infos[u'容易度'][line],
                         right_answer_id=1, right_answer=infos[u'歌曲名'][line],
                         wrong_answer_id=2, wrong_answer=infos[u'错误歌曲名'][line], resource_url=url)
             obj.save()

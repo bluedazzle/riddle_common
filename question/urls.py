@@ -10,5 +10,5 @@ urlpatterns = [
     url(r'^(?P<qid>(\w)+)/$', FetchQuestionView.as_view()),
     url(r'^(?P<qid>(\w)+)/answer/$', AnswerView.as_view()),
     url(r'^(?P<qid>(\w)+)/stimulate/$', StimulateView.as_view()),
-    url(r'^question/watchvideo/$', WatchVideoView.as_view()),
+    url(r'^watchvideo/$', WatchVideoView.as_view()),
 ]

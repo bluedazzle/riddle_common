@@ -50,7 +50,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
 
     def get(self, request, *args, **kwargs):
         self.conf = get_global_conf()
-        round_coin = self.conf.get('round_coin', 3000)
+        round_cash = self.conf.get('round_cash', 300)
         round_count = self.conf.get('round_count', 50)
         low_range = self.conf.get('low_range', 0.5)
         high_range = self.conf.get('high_range', 1.5)
@@ -58,6 +58,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         obj = self.get_object()
         aid = int(request.GET.get('answer', 0))
         if self.user.current_level != obj.order_id:
+            print self.user.current_level, obj.order_id
             self.update_status(StatusCode.ERROR_QUESTION_ORDER)
             return self.render_to_response()
         tag = string.join(
@@ -65,27 +66,26 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
                           self.count)).replace(" ", "")
         client_redis_riddle.set(str(self.user.id) + 'tag', tag)
         rand_num = random.random() * (high_range - low_range) + low_range
-        coin = int(((2 * round_coin / round_count) -
-                    self.user.current_step * (2 * round_coin / round_count) / round_count)
-                   * rand_num + const_num)
-        if self.user.current_step == round_count and self.user.coin < round_coin:
-            coin = round_coin - self.user.coin
-        client_redis_riddle.set(str(self.user.id) + 'coin', coin)
+        cash = ((2 * round_cash / round_count) -
+                    self.user.current_step * (2 * round_cash / round_count) / round_count) * rand_num + const_num
+        if self.user.current_step == round_count and self.user.cash < round_cash:
+            cash = round_cash - self.user.cash
+        client_redis_riddle.set(str(self.user.id) + 'cash', cash)
         if obj.right_answer_id != aid:
-            return self.render_to_response({'answer': False, 'coin': 0})
+            return self.render_to_response({'answer': False, 'tag': tag, 'cash': 0})
         if self.user.current_step == round_count:
             self.user.current_step = 0
         self.user.current_step += 1
-        self.user.coin += coin
+        self.user.cash += cash
         self.user.save()
-        return self.render_to_response({'answer': True, 'coin': coin})
+        return self.render_to_response({'answer': True, 'tag': tag, 'cash': cash})
 
 
 class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     model = Question
     pk_url_kwarg = 'qid'
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         obj = self.get_object()
         # todo 只是简单让关卡继续，没有做积分逻辑
         if self.user.current_level != obj.order_id:
@@ -96,7 +96,7 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
             self.update_status(StatusCode.ERROR_STIMULATE_TAG)
             return self.render_to_response()
         client_redis_riddle.delete(str(self.user.id) + 'tag')
-        client_redis_riddle.delete(str(self.user.id) + 'coin')
+        client_redis_riddle.delete(str(self.user.id) + 'cash')
         if self.user.current_level == 100:
             self.user.current_level = 0
         self.user.current_level += 1
@@ -117,10 +117,10 @@ class WatchVideoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
         if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
             self.update_status(StatusCode.ERROR_STIMULATE_TAG)
             return self.render_to_response()
-        coin = client_redis_riddle.get(str(self.user.id) + 'coin')
-        self.user.coin += coin
+        cash = client_redis_riddle.get(str(self.user.id) + 'cash')
+        self.user.cash += cash
         client_redis_riddle.delete(str(self.user.id) + 'tag')
-        client_redis_riddle.delete(str(self.user.id) + 'coin')
+        client_redis_riddle.delete(str(self.user.id) + 'cash')
         if self.user.current_level == 100:
             self.user.current_level = 0
         self.user.current_level += 1
