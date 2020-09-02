@@ -77,6 +77,9 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         cash = 100
         if obj.right_answer_id != aid:
             self.user.wrong_count += 1
+            if self.user.current_level == 100:
+                self.user.current_level = 0
+            self.user.current_level += 1
             self.user.save()
             return self.render_to_response({'answer': False, 'tag': tag, 'cash': 0})
         if self.user.current_step == round_count:
