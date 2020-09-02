@@ -62,7 +62,7 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
 
 class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     force_check = False
-    http_method_names = ['post']
+    # http_method_names = ['post']
 
     def get(self, request, *args, **kwargs):
         try:
@@ -100,7 +100,7 @@ class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVie
             return self.render_to_response({'user': self.user})
         except Exception as e:
             self.update_status(StatusCode.ERROR_DATA)
-            self.render_to_response(extra={'error': e.message})
+            return self.render_to_response(extra={'error': e.message})
 
 
 class VerifyCodeView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, FormView):
@@ -118,8 +118,10 @@ class VerifyCodeView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, Fo
         return False
 
     def form_valid(self, form):
+        if self.user.phone:
+            self.update_status(StatusCode.ERROR_PHONE_BIND)
+            return self.render_to_response()
         phone = form.cleaned_data.get('phone')
-
         if self.check_exist(phone):
             self.update_status(StatusCode.ERROR_PHONE_EXIST)
             return self.render_to_response()
@@ -137,9 +139,22 @@ class VerifyCodeView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, Fo
 class ValidateVerifyView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, FormView):
     form_class = ValidateVerifyCodeForm
 
+    @staticmethod
+    def check_exist(phone):
+        objs = User.objects.filter(phone=phone).all()
+        if objs.exists():
+            return True
+        return False
+
     def form_valid(self, form):
         from core.cache import get_verify_from_redis
+        if self.user.phone:
+            self.update_status(StatusCode.ERROR_PHONE_BIND)
+            return self.render_to_response()
         phone = form.cleaned_data.get('phone')
+        if self.check_exist(phone):
+            self.update_status(StatusCode.ERROR_PHONE_EXIST)
+            return self.render_to_response()
         code = form.cleaned_data.get('code')
         verify = get_verify_from_redis(phone)
         if not verify:

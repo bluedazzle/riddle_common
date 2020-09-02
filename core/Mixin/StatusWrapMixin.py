@@ -57,6 +57,7 @@ class StatusCode(ChoiceBase):
     ERROR_NO_VERIFY = 2003
     ERROR_VERIFY = 2004
     ERROR_PHONE_EXIST = 2005
+    ERROR_PHONE_BIND = 2006
 
     ERROR_QUESTION_ORDER = 3001
     ERROR_STIMULATE_TAG = 3002
@@ -81,6 +82,7 @@ class StatusCode(ChoiceBase):
         (ERROR_STIMULATE_TAG, u'激励验证错误'),
         (ERROR_PHONE_EXIST, u'手机号已存在'),
         (ERROR_NOT_ALLOW_CASH, u'未到提现门槛'),
+        (ERROR_PHONE_BIND, u'账号已绑定手机'),
     )
 
 
@@ -92,16 +94,15 @@ class StatusWrapMixin(object):
         self.status_code = key
         self.message = StatusCode.get_value(key)
 
-    def render_to_response(self, context={}, extra={}, isValid=False, **response_kwargs):
+    def render_to_response(self, context={}, extra={}, **response_kwargs):
         context_dict = self.context_serialize(context)
-        json_context = self.json_serializer(self.wrapper(context_dict, extra, isValid))
+        json_context = self.json_serializer(self.wrapper(context_dict, extra))
         return HttpResponse(json_context, content_type='application/json', **response_kwargs)
 
-    def wrapper(self, context, extra, isValid):
+    def wrapper(self, context, extra):
         return_data = dict()
         return_data['data'] = context
         return_data['extra'] = extra
-        return_data['isValid'] = isValid
         return_data['code'] = self.status_code
         return_data['msg'] = self.message
         if self.status_code != StatusCode.INFO_SUCCESS:
