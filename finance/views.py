@@ -137,7 +137,7 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
         return reward_list
 
     def get_new_reward(self):
-        self.user += 0
+        self.user.cash += 0
         return True
 
     def post(self, request, *args, **kwargs):
