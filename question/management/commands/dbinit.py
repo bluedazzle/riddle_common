@@ -11,6 +11,7 @@ from question.models import Question
 
 prefix = 'http://songs.guess-song.plutus-cat.com/'
 
+
 class Command(BaseCommand):
     def pingyin(self, word):
         s = ''
@@ -20,7 +21,7 @@ class Command(BaseCommand):
 
     def song_init(self, execl, songs=0):
         model = Song
-        df = pd.read_excel(execl, sheet_name=u'曲库表')
+        df = pd.read_excel(execl, sheet_name=u'songs', encoding='utf-8')
         infos = df.ix[:, [u'歌手名', u'歌曲名']]
         if songs == 0:
             lines = len(infos[u'歌手名'])
@@ -37,7 +38,7 @@ class Command(BaseCommand):
 
     def question_init(self, execl, questions=0):
         model = Question
-        df = pd.read_excel(execl, sheet_name=u'曲库表')
+        df = pd.read_excel(execl, sheet_name=u'songs', encoding='utf-8')
         infos = df.ix[:, [u'歌手名', u'歌曲名', u'容易度', u'错误歌曲名']]
         if questions == 0:
             lines = len(infos[u'歌手名'])
@@ -54,5 +55,5 @@ class Command(BaseCommand):
             obj.save()
 
     def handle(self, *args, **options):
-        self.song_init(u'question/management/commands/进度表及曲库.xlsx', 100)
-        self.question_init(u'question/management/commands/进度表及曲库.xlsx', 100)
+        self.song_init(u'question/management/commands/songs.xlsx', 100)
+        self.question_init(u'question/management/commands/songs.xlsx', 100)
