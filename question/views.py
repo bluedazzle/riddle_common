@@ -20,6 +20,7 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
     model = Question
     exclude_attr = ['wrong_answer_id', 'wrong_answer', 'right_answer', 'right_answer_id']
     pk_url_kwarg = 'qid'
+    datetime_type = 'timestamp'
 
     def get_object(self, queryset=None):
         obj = None

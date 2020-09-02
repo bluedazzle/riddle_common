@@ -23,9 +23,9 @@ class TimeFormatFactory(object):
     @staticmethod
     def datetime_to_timestamp(datetime_time, time_format=None):
         if datetime_time.tzinfo is None:
-            return time.mktime(datetime_time.timetuple())
+            return int(time.mktime(datetime_time.timetuple()))
         datetime_time = datetime_time.astimezone(timezone.get_current_timezone())
-        return time.mktime(datetime_time.timetuple())
+        return int(time.mktime(datetime_time.timetuple()))
 
     @staticmethod
     def get_time_func(func_type='string'):

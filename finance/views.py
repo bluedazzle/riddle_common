@@ -20,6 +20,7 @@ class CashRecordListView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseM
     slug_field = 'token'
     paginate_by = 2
     ordering = ('-create_time',)
+    datetime_type = 'timestamp'
 
     def get_list_by_user(self):
         self.queryset = self.model.objects.filter(belong=self.user)
@@ -34,6 +35,7 @@ class ExchangeRecordListView(CheckTokenMixin, StatusWrapMixin, MultipleJsonRespo
     slug_field = 'token'
     paginate_by = 2
     ordering = ('-create_time',)
+    datetime_type = 'timestamp'
 
     def get_list_by_user(self):
         self.queryset = self.model.objects.filter(belong=self.user)
