@@ -104,12 +104,12 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
         if self.user.current_level - 1 != obj.order_id:
             self.update_status(StatusCode.ERROR_QUESTION_ORDER)
             return self.render_to_response()
-        tag = request.GET.get('tag', '0')
-        if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
-            self.update_status(StatusCode.ERROR_STIMULATE_TAG)
-            return self.render_to_response()
-        client_redis_riddle.delete(str(self.user.id) + 'tag')
-        client_redis_riddle.delete(str(self.user.id) + 'cash')
+        # tag = request.GET.get('tag', '0')
+        # if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
+        #     self.update_status(StatusCode.ERROR_STIMULATE_TAG)
+        #     return self.render_to_response()
+        # client_redis_riddle.delete(str(self.user.id) + 'tag')
+        # client_redis_riddle.delete(str(self.user.id) + 'cash')
         # if self.user.current_level == 100:
         #     self.user.current_level = 0
         # self.user.current_level += 1
