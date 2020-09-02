@@ -6,15 +6,15 @@ from account.models import BaseModel
 
 # Create your models here.
 from core.cache import set_global_config_to_cache
-from core.consts import DEFAULT_ALLOW_CASH_COUNT, DEFAULT_COIN_CASH_PROPORTION, TOTAL_LEVEL, ROUND_COIN, ROUND_COUT
+from core.consts import DEFAULT_ALLOW_CASH_COUNT, DEFAULT_COIN_CASH_PROPORTION, TOTAL_LEVEL, ROUND_CASH, ROUND_COUNT
 from core.dss.Serializer import serializer
 
 
 class GlobalConf(BaseModel):
     coin_cash_proportion = models.IntegerField(default=DEFAULT_COIN_CASH_PROPORTION)
     total_level = models.IntegerField(default=TOTAL_LEVEL)
-    round_coin = models.IntegerField(default=ROUND_COIN)
-    round_count = models.IntegerField(default=ROUND_COUT)
+    round_cash = models.IntegerField(default=ROUND_CASH)
+    round_count = models.IntegerField(default=ROUND_COUNT)
     low_range = models.FloatField(default=0.5)
     high_range = models.FloatField(default=1.5)
     const_num = models.IntegerField(default=0)
