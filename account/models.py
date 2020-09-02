@@ -6,6 +6,7 @@ from django.utils import timezone
 
 
 # Create your models here.
+from core.consts import NEW_EXTEND_TIMES
 
 
 class BaseModel(models.Model):
@@ -27,6 +28,10 @@ class User(BaseModel):
     cash = models.IntegerField(default=0)
     current_level = models.IntegerField(default=1)
     current_step = models.IntegerField(default=1)
+    new_withdraw = models.BooleanField(default=False)
+    new_red_packet = models.BooleanField(default=False)
+    new_red_packet_expire = models.DateTimeField(default=timezone.now)
+    new_red_packet_extend_times = models.IntegerField(default=NEW_EXTEND_TIMES)
     expire_time = models.DateTimeField(default=timezone.now)
     right_count = models.IntegerField(default=0)
     wrong_count = models.IntegerField(default=0)

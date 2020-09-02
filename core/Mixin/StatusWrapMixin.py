@@ -63,6 +63,7 @@ class StatusCode(ChoiceBase):
     ERROR_STIMULATE_TAG = 3002
 
     ERROR_NOT_ALLOW_CASH = 4000
+    ERROR_REPEAT_NEW_PACKET = 4001
 
     __choices__ = (
         (INFO_SUCCESS, u'成功'),
@@ -83,6 +84,7 @@ class StatusCode(ChoiceBase):
         (ERROR_PHONE_EXIST, u'手机号已存在'),
         (ERROR_NOT_ALLOW_CASH, u'未到提现门槛'),
         (ERROR_PHONE_BIND, u'账号已绑定手机'),
+        (ERROR_REPEAT_NEW_PACKET, u'新人红包不可重复领取'),
     )
 
 

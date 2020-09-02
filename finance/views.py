@@ -2,17 +2,20 @@
 from __future__ import unicode_literals
 
 # Create your views here.
+import random
+
 from django.core.exceptions import ValidationError
 from django.views.generic import CreateView
+from django.views.generic import DetailView
 from django.views.generic import ListView
 from django.db import transaction
 
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
-from core.consts import DEFAULT_ALLOW_CASH_COUNT
-from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin
+from core.consts import DEFAULT_ALLOW_CASH_COUNT, STATUS_USED, PACKET_TYPE_CASH, PACKET_TYPE_WITHDRAW
+from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from finance.forms import CashRecordForm, ExchangeRecordForm
-from finance.models import CashRecord, ExchangeRecord
+from finance.models import CashRecord, ExchangeRecord, RedPacket
 
 
 class CashRecordListView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, ListView):
@@ -101,3 +104,51 @@ class CreateExchangeRecordView(CheckTokenMixin, StatusWrapMixin, FormJsonRespons
             return self.render_to_response(dict())
         except Exception as e:
             return self.render_to_response({})
+
+
+class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView):
+    model = RedPacket
+    http_method_names = ['post']
+    conf = {}
+
+    def get_reward(self):
+        reward_list = []
+        amount = random.randint(50, 500)
+        rp = RedPacket()
+        rp.amount = amount
+        rp.status = STATUS_USED
+        rp.reward_type = PACKET_TYPE_CASH
+        rp.save()
+        self.user.cash += amount
+        self.user.save()
+        reward = {'reward_type': PACKET_TYPE_CASH, 'amount': amount, 'hit': True}
+        reward_list.append(reward)
+        reward1 = random.randint(PACKET_TYPE_CASH, PACKET_TYPE_WITHDRAW)
+        reward2 = random.randint(PACKET_TYPE_CASH, PACKET_TYPE_WITHDRAW)
+        if reward1 == PACKET_TYPE_CASH:
+            reward_list.append({'reward_type': PACKET_TYPE_CASH, 'amount': amount, 'hit': False})
+        else:
+            reward_list.append({'reward_type': reward1, 'amount': 0, 'hit': False})
+        if reward2 == PACKET_TYPE_CASH:
+            reward_list.append({'reward_type': PACKET_TYPE_CASH, 'amount': amount, 'hit': False})
+        else:
+            reward_list.append({'reward_type': reward2, 'amount': 0, 'hit': False})
+        return reward_list
+
+    def get_new_reward(self):
+        self.user += 0
+        return True
+
+    def post(self, request, *args, **kwargs):
+        new_packet = int(request.POST.get('new_packet', 0))
+        if new_packet:
+            if self.user.new_red_packet:
+                self.update_status(StatusCode.ERROR_REPEAT_NEW_PACKET)
+                return self.render_to_response()
+            self.get_new_reward()
+            self.user.new_red_packet = True
+            self.user.save()
+            return self.render_to_response()
+        # todo 验证能不能玩
+        reward_list = self.get_reward()
+        return self.render_to_response({'reward_list': reward_list})

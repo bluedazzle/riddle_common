@@ -10,4 +10,5 @@ urlpatterns = [
     url(r'^cash/$', CreateCashRecordView.as_view()),
     url(r'^exchange_records/$', ExchangeRecordListView.as_view()),
     url(r'^exchange/$', CreateExchangeRecordView.as_view()),
+    url(r'^reward/$', RewardView.as_view()),
 ]

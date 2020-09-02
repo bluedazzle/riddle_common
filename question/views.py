@@ -4,12 +4,8 @@ import random
 import string
 
 # Create your views here.
-from django.core.exceptions import ValidationError
-from django.http import HttpResponse
 from django.http import JsonResponse
-from django.views.generic import CreateView
 from django.views.generic import DetailView
-from django.db import transaction
 
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
@@ -107,9 +103,13 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
         return self.render_to_response()
 
 
-class WatchVideoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
     model = Question
     pk_url_kwarg = 'qid'
+
+    def get(self, request, *args, **kwargs):
+        print '1'
+        return self.render_to_response()
 
     def post(self, request, *args, **kwargs):
         obj = self.get_object()

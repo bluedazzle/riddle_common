@@ -6,7 +6,8 @@ from account.models import BaseModel
 
 # Create your models here.
 from core.cache import set_global_config_to_cache
-from core.consts import DEFAULT_ALLOW_CASH_COUNT, DEFAULT_COIN_CASH_PROPORTION, TOTAL_LEVEL, ROUND_CASH, ROUND_COUNT
+from core.consts import DEFAULT_ALLOW_CASH_COUNT, DEFAULT_COIN_CASH_PROPORTION, TOTAL_LEVEL, ROUND_CASH, ROUND_COUNT, \
+    DEFAULT_NEW_PACKET
 from core.dss.Serializer import serializer
 
 
@@ -18,6 +19,7 @@ class GlobalConf(BaseModel):
     low_range = models.FloatField(default=0.5)
     high_range = models.FloatField(default=1.5)
     const_num = models.IntegerField(default=0)
+    new_red_packet = models.IntegerField(default=DEFAULT_NEW_PACKET)
     allow_cash_count = models.IntegerField(default=DEFAULT_ALLOW_CASH_COUNT, verbose_name='提现门槛(单位: 分)')
 
     def __unicode__(self):

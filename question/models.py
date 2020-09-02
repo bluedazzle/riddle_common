@@ -29,4 +29,4 @@ class Question(BaseModel):
     resource_url = models.CharField(max_length=256)
 
     def __unicode__(self):
-        return '{0}'.format(self.title)
+        return '排序:{0}-{1}:{2}'.format(self.order_id, self.title, self.right_answer)
