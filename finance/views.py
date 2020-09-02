@@ -118,6 +118,7 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
         rp.amount = amount
         rp.status = STATUS_USED
         rp.reward_type = PACKET_TYPE_CASH
+        rp.belong = self.user
         rp.save()
         self.user.cash += amount
         self.user.save()
