@@ -98,7 +98,7 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
             return self.render_to_response()
         client_redis_riddle.delete(str(self.user.id) + 'tag')
         client_redis_riddle.delete(str(self.user.id) + 'coin')
-        if self.user.current_level == 4:
+        if self.user.current_level == 100:
             self.user.current_level = 0
         self.user.current_level += 1
         self.user.save()
@@ -122,7 +122,7 @@ class WatchVideoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
         self.user.coin += coin
         client_redis_riddle.delete(str(self.user.id) + 'tag')
         client_redis_riddle.delete(str(self.user.id) + 'coin')
-        if self.user.current_level == 4:
+        if self.user.current_level == 100:
             self.user.current_level = 0
         self.user.current_level += 1
         self.user.save()
