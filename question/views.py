@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import random
 import string
+import json
 
 # Create your views here.
 from django.core.exceptions import ValidationError
@@ -16,6 +17,7 @@ from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonR
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle
 from question.models import Question
+from account.models import User
 
 
 class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
@@ -107,16 +109,43 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
         return self.render_to_response()
 
 
-class WatchVideoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
     model = Question
-    pk_url_kwarg = 'qid'
 
-    def post(self, request, *args, **kwargs):
-        obj = self.get_object()
+    def check_token(self, token):
+        user_list = User.objects.filter(token=token)
+        if user_list.exists():
+            self.user = user_list[0]
+            return True
+        return False
+
+    def check_token_result(self, token):
+        result = self.check_token(token)
+        if not result:
+            self.update_status(StatusCode.ERROR_PERMISSION_DENIED)
+            return False
+        return True
+
+    def get(self, request, *args, **kwargs):
+        print 11111111111111111111
+        obj = None
+        extra = request.GET.get('extra',{})
+        info = json.loads(extra)
+        token = info['token']
+        print token
+        if not self.check_token_result(token):
+            return self.render_to_response()
+        qid = info['question_id']
+        objs = self.model.objects.filter(order_id=qid).all()
+        if objs.exists():
+            obj = objs[0]
+        if not obj:
+            self.update_status(StatusCode.ERROR_QUESTION_NONE)
+            return self.render_to_response()
         if self.user.current_level != obj.order_id:
             self.update_status(StatusCode.ERROR_QUESTION_ORDER)
             return JsonResponse({'isValid': False})
-        tag = request.GET.get('tag', '0')
+        tag = info['tag']
         if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
             self.update_status(StatusCode.ERROR_STIMULATE_TAG)
             return JsonResponse({'isValid': False})
