@@ -71,7 +71,7 @@ class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVie
                 self.update_status(StatusCode.ERROR_PARAMETER)
                 return self.render_to_response()
             data = get_access_token_by_code(code)
-            wx_open_id = data.get('openid')
+            wx_open_id = data.get('unionid')
             self.slug_field = 'wx_open_id'
             kwargs['wx_open_id'] = wx_open_id
             obj = self.get_object()

@@ -67,6 +67,7 @@ def get_access_token_by_code(code):
     try:
         resp = requests.get(url, timeout=3)
         json_data = resp.json()
+        print json_data
         if not json_data.get('errcode'):
             return json_data
         raise ValueError(json_data.get('errmsg'))
@@ -79,6 +80,7 @@ def get_user_info(access_token, open_id):
     try:
         resp = requests.get(url, timeout=3)
         json_data = resp.json()
+        print json_data
         if not json_data.get('errcode'):
             return json_data
     except Exception as e:
