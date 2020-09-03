@@ -49,7 +49,7 @@ def question_init(execl, questions=0):
         if resp.getcode() != 200:
             continue
         questions_list.append((int(infos[u'顺序id'][line]), infos[u'容易度'][line], infos[u'歌曲名'][line], infos[u'错误歌曲名'][line], url))
-    print sorted(questions_list, key=)
+    print sorted(questions_list)
 
 
 
