@@ -74,7 +74,7 @@ class CheckTokenMixin(object):
 
 
 class JsonResponseMixin(object):
-    datetime_type = 'string'
+    datetime_type = 'timestamp'
     foreign = False
     many = False
     include_attr = []

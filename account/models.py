@@ -20,7 +20,7 @@ class BaseModel(models.Model):
 class User(BaseModel):
     name = models.CharField(max_length=100, default='')
     token = models.CharField(max_length=128, unique=True)
-    avatar = models.CharField(max_length=128, default='')
+    avatar = models.CharField(max_length=256, default='')
     province = models.CharField(max_length=30, default='', null=True, blank=True)
     city = models.CharField(max_length=30, default='', null=True, blank=True)
     sex = models.IntegerField(default=3)

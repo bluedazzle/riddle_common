@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 import json
 import requests
 
-from django.core.cache import cache
-from django.utils import timezone
+# from django.core.cache import cache
+# from django.utils import timezone
 
 APP_KEY = 'wx0a70602b8b19b1e5'
 APP_SECRET = '77b167cb1b9f4cc491010207d79b4f61'
@@ -83,5 +83,11 @@ def get_user_info(access_token, open_id):
         print json_data
         if not json_data.get('errcode'):
             return json_data
+        raise ValueError(json_data.get('errmsg'))
     except Exception as e:
         raise e
+
+
+# a = get_user_info('36_JfpsAim5IsbKJga0EIFmwPBilywps41UGGZeYpUnZsC8wSEy1RS92sxFm2oJP7a2uZcFJjIjjCxvBUwhoQiZa6T38FCGq9-CpzodaMlPFS8', 'oJhFr6Q66rQqXSE2nnBOBbNcchJ0')
+#
+# print a.get('province').encode('raw_unicode_escape')
