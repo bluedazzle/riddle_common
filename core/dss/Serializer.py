@@ -31,8 +31,7 @@ class Serializer(object):
     foreign = False
     many = False
 
-    def \
-            __init__(self, data, datetime_format='timestamp', output_type='raw', include_attr=None, exclude_attr=None,
+    def __init__(self, data, datetime_format='timestamp', output_type='raw', include_attr=None, exclude_attr=None,
                  foreign=False, many=False, *args, **kwargs):
         if include_attr:
             self.include_attr = include_attr
