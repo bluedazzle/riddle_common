@@ -5,6 +5,9 @@ import random
 import string
 
 import datetime
+
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404
 from django.shortcuts import render
 
 # Create your views here.
@@ -62,6 +65,8 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
 
 class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     force_check = False
+    model = User
+    slug_field = 'wx_open_id'
     # http_method_names = ['post']
 
     def get(self, request, *args, **kwargs):
@@ -71,21 +76,25 @@ class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVie
                 self.update_status(StatusCode.ERROR_PARAMETER)
                 return self.render_to_response()
             data = get_access_token_by_code(code)
-            wx_open_id = data.get('unionid')
+            wx_open_id = data.get('openid')
             self.slug_field = 'wx_open_id'
-            kwargs['wx_open_id'] = wx_open_id
-            obj = self.get_object()
+            self.kwargs['slug'] = wx_open_id
+            obj = None
+            try:
+                obj = self.get_object()
+            except Http404:
+                pass
             if obj:
                 return self.render_to_response({'user': obj})
             access_token = data.get('access_token')
-            if not wx_open_id and not access_token:
+            if not wx_open_id or not access_token:
                 self.update_status(StatusCode.ERROR_PARAMETER)
                 return self.render_to_response()
             data = get_user_info(access_token, wx_open_id)
-            name = data.get('nickname')
+            name = data.get('nickname').encode('raw_unicode_escape')
             avatar = data.get('headimgurl')
-            province = data.get('province')
-            city = data.get('city')
+            province = data.get('province').encode('raw_unicode_escape')
+            city = data.get('city').encode('raw_unicode_escape')
             sex = data.get('sex')
             if not self.user:
                 self.update_status(StatusCode.ERROR_PERMISSION_DENIED)
