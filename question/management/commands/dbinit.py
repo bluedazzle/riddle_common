@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import pandas as pd
 import pypinyin
+import urllib
 
 from django.core.management.base import BaseCommand
 
