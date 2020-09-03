@@ -67,6 +67,7 @@ class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVie
     force_check = False
     model = User
     slug_field = 'wx_open_id'
+    datetime_type = 'timestamp'
     # http_method_names = ['post']
 
     def get(self, request, *args, **kwargs):
