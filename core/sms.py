@@ -5,8 +5,8 @@ import json
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
 
-ACCESS_KEY = "LTAI4GA98KUDkoGBkWQ9jvEY"
-ACCESS_SECRET = "Y5M7ESNrKpGM3TC69UgaqaTFKNscC1"
+ACCESS_KEY = "LTAI4GBzg1ciDQJQDVWbkKWi"
+ACCESS_SECRET = "BsTurISfu76CvFgNsVrPR8fmUpYFzP"
 
 
 def send_sms_by_phone(phone, code):
