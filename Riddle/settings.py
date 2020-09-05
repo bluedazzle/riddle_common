@@ -89,7 +89,7 @@ WSGI_APPLICATION = 'Riddle.wsgi.application'
 #         'PORT': conf.riddle_port,
 #     }
 # }
-
+#
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

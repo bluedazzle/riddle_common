@@ -11,7 +11,9 @@ from django.views.generic import ListView
 from django.db import transaction
 
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
-from core.consts import DEFAULT_ALLOW_CASH_COUNT, STATUS_USED, PACKET_TYPE_CASH, PACKET_TYPE_WITHDRAW
+from core.cache import REWARD_KEY, client_redis_riddle
+from core.consts import DEFAULT_ALLOW_CASH_COUNT, STATUS_USED, PACKET_TYPE_CASH, PACKET_TYPE_WITHDRAW, \
+    DEFAULT_NEW_PACKET
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from finance.forms import CashRecordForm, ExchangeRecordForm
@@ -137,7 +139,10 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
         return reward_list
 
     def get_new_reward(self):
-        self.user.cash += 0
+        conf = get_global_conf()
+        new_packet = int(conf.get('new_red_packet', DEFAULT_NEW_PACKET))
+        self.user.cash += new_packet
+        self.user.new_red_packet = True
         return True
 
     def post(self, request, *args, **kwargs):
@@ -147,9 +152,10 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
                 self.update_status(StatusCode.ERROR_REPEAT_NEW_PACKET)
                 return self.render_to_response()
             self.get_new_reward()
-            self.user.new_red_packet = True
             self.user.save()
             return self.render_to_response()
-        # todo 验证能不能玩
+        if not client_redis_riddle.delete(REWARD_KEY.format(self.user.id)):
+            self.update_status(StatusCode.ERROR_REWARD_DENIED)
+            return self.render_to_response()
         reward_list = self.get_reward()
         return self.render_to_response({'reward_list': reward_list})

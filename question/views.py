@@ -9,9 +9,10 @@ from django.http import JsonResponse
 from django.views.generic import DetailView
 
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
+from core.consts import DEFAULT_REWARD_COUNT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
-from core.cache import client_redis_riddle
+from core.cache import client_redis_riddle, REWARD_KEY
 from question.models import Question
 from account.models import User
 
@@ -81,17 +82,25 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
                 self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
-            return self.render_to_response({'answer': False, 'tag': tag, 'cash': 0})
+            return self.render_to_response({'answer': False, 'tag': tag, 'cash': 0, 'reward': False})
         if self.user.current_step == round_count:
             self.user.current_step = 0
         self.user.right_count += 1
         self.user.current_step += 1
         self.user.cash += cash
+        self.user.reward_count += 1
+        reward = False
+        if self.user.reward_count == DEFAULT_REWARD_COUNT:
+            reward = True
+            self.user.reward_count = 0
+            client_redis_riddle.set(REWARD_KEY.format(self.user.id), 1, 600)
+        elif self.user.reward_count > DEFAULT_REWARD_COUNT:
+            self.user.reward_count -= DEFAULT_REWARD_COUNT
         if self.user.current_level == 100:
             self.user.current_level = 0
         self.user.current_level += 1
         self.user.save()
-        return self.render_to_response({'answer': True, 'tag': tag, 'cash': cash})
+        return self.render_to_response({'answer': True, 'tag': tag, 'cash': cash, 'reward': reward})
 
 
 class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
