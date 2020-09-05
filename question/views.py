@@ -51,8 +51,8 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
 
     def get(self, request, *args, **kwargs):
         self.conf = get_global_conf()
-        round_cash = self.conf.get('round_cash', 300)
-        round_count = self.conf.get('round_count', 50)
+        round_cash = self.conf.get('round_cash', 30000)
+        round_count = self.conf.get('round_count', 500)
         low_range = self.conf.get('low_range', 0.5)
         high_range = self.conf.get('high_range', 1.5)
         const_num = self.conf.get('const_num', 0)
