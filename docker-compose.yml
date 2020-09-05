@@ -6,7 +6,6 @@ services:
         context: ./
       volumes: #项目数据持久化配置---包括项目、uwsgi配置文件
         - ./:/site:rw
-      restart: always #系统重启后容器自动启动
       privileged: true   #容器启动后是否有系统权限
       networks:   #定义该容器的网桥名称和IP地址
           net-django:
