@@ -1,5 +1,5 @@
 <uwsgi>
-    <socket>127.0.0.1:8000</socket>
+    <socket>:8000</socket>
     <listen>512</listen>
     <master>true</master>
     <processes>1</processes>
@@ -12,9 +12,9 @@
     <harakiri>20</harakiri>
     <lazy/>
     <lock-engine>ipcsem</lock-engine>
-    <logto>/logs/riddle.site.log</logto>
+    <!-- <logto>/logs/riddle.site.log</logto> -->
     <log-maxsize>2147483647</log-maxsize>
-    <disable-logging/>
+    <!-- <disable-logging/> -->
     <log-slow>500</log-slow>
     <log-4xx/>
     <log-5xx/>
@@ -31,6 +31,6 @@
     <thunder-lock/>
     <enable-threads>true</enable-threads>
     <wsgi-file>/site/Riddle/wsgi.py</wsgi-file>
-    <pidfile>/logs/uwsgi.pid</pidfile>
-    <daemonize>/logs/uwsgi.riddle.site.log</daemonize>
+    <!-- <pidfile>/logs/uwsgi.pid</pidfile>
+    <daemonize>/logs/uwsgi.riddle.site.log</daemonize> -->
 </uwsgi>
