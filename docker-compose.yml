@@ -1,50 +1,31 @@
 version: '3'
 services:
-
-  riddle:
-      build:
-        context: ./
-      volumes: #项目数据持久化配置---包括项目、uwsgi配置文件
-        - ./:/site:rw
-      privileged: true   #容器启动后是否有系统权限
-      networks:   #定义该容器的网桥名称和IP地址
-          net-django:
-            ipv4_address: 10.127.2.5
-      command: uwsgi conf/uwsgi/uwsgi.xml   #容器启动后执行的命令，必须要此命令，以项目uwsgi配置文件启动uwsgi
-
-  ### Nginx container #########################################
-  nginx:
-    image: nginx:latest  #定义nginx使用的镜像，直接从docker hub上获取
-    ports:    #定义nginx开放的web端口 80和8080
-      - "8080:8080"
-    volumes:   #nginx数据持久化配置---包括项目、项目nginx配置文件和nginx日志文件
+  app:
+    build: ./
+    volumes:
       - ./:/site:rw
-      - ./conf/nginx/nginx.conf:/etc/nginx/nginx.conf:rw
-      - ./conf/nginx/conf.d:/etc/nginx/conf.d:rw
-#      - ./work/components/nginx/log:/var/log/nginx:rw
-    restart: always   #系统重启后容器自动启动
-    privileged: true  #容器启动后是否有系统权限
-    networks:     #定义nginx容器的网桥名称和IP地址
-      net-django:
-        ipv4_address: 10.127.2.4
+    depends_on:
+      - postgres
+      - redis
 
-  ### Mariadb container #########################################
+  nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./static:/site/static:cached
+      - ./conf/nginx/conf.d:/etc/nginx/conf.d:cached
+
   postgres:
-      image: postgres:latest
-      ports:
-        - "5432:5432"
-      restart: always   #系统重启后容器自动启动
-      privileged: true   #容器启动后是否有系统权限
-      environment:
-        POSTGRES_PASSWORD: postgres
-        PGDATA: /var/lib/postgresql/data/pgdata
-      networks:
-        net-django:
-          ipv4_address: 10.127.2.3
+    image: postgres:latest
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
 
-### Add Network Bridge info #########################################
-networks:
-  net-django:
-    ipam:
-      config:
-        - subnet: 10.127.2.0/24
+  redis:
+    restart: always
+    image: redis
