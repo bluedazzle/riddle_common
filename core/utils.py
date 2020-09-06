@@ -7,7 +7,7 @@ import json
 os.environ['TRANSLATE_LAZY'] = '1'
 from core.pyutil.conf2 import Conf
 
-conf = Conf(os.path.join(os.path.dirname(os.path.dirname(__file__)), "conf/deploy.conf"))
+conf = Conf(os.getenv('RIDDLE_CONF_FILE') or os.path.join(os.path.dirname(os.path.dirname(__file__)), "conf/deploy.conf"))
 
 is_debug = conf.debug == 'True'
 
