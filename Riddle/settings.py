@@ -25,9 +25,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '+matthg$w)x_5#ax0uug(jdy0)@^5(a)%w6mr$bmbcsac-n7x4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = conf.debug == 'True'
 
-ALLOWED_HOSTS = ['202.112.237.65']
+ALLOWED_HOSTS = [
+    '202.112.237.65',
+    'app.guess-song.plutus-cat.com',
+    'tapp.guess-song.plutus-cat.com',
+]
 
 # Application definition
 
