@@ -71,8 +71,8 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         cash = int(((2 * round_cash / round_count) -
                     self.user.current_step * (2 * round_cash / round_count) / round_count)\
                * rand_num + const_num)
-        if cash < 100 and self.user.current_step < 100:
-            cash = 102
+        # if cash < 100 and self.user.current_step < 100:
+        #     cash = 102
         if self.user.current_step == round_count and self.user.cash < round_cash:
             cash = round_cash - self.user.cash
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
