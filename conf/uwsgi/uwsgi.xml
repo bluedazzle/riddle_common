@@ -1,6 +1,6 @@
 <uwsgi>
     <socket>:8000</socket>
-    <listen>512</listen>
+    <listen>100</listen>
     <master>true</master>
     <processes>1</processes>
     <buffer-size>16384</buffer-size>

@@ -210,3 +210,6 @@ fabfile.py
 
 # docker compose
 #docker-compose.yml
+
+# local conf
+conf/deploy_dev.conf
