@@ -14,7 +14,7 @@ EXPIRE_TIME = 300
 
 def config_client_redis_zhz():
     global client_redis_riddle
-    client_redis_riddle = redis.StrictRedis(db=2, host=conf.redis_host, port=int(conf.redis_port))
+    client_redis_riddle = redis.StrictRedis(db=int(conf.redis_db), host=conf.redis_host, port=int(conf.redis_port))
 
 
 def get_global_config_from_cache():
