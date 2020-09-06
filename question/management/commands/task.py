@@ -65,13 +65,14 @@ def question_init(execl, questions=0):
                 continue
             questions2_list.append((infos[u'顺序id'][line], int(infos[u'容易度'][line]), infos[u'歌曲名'][line], infos[u'错误歌曲名'][line], url))
     # sorted(questions2_list, key=itemgetter(1))
-    questions2_list.sort(key=itemgetter(1))
+    # questions2_list.sort(key=itemgetter(1))
+    questions2_list.sort(key=lambda x: (x[1], x[2]))
     # print questions2_list
     for item in questions2_list:
         questions1_list.append(item)
-    # print questions1_list
-    for num in range(len(questions1_list)):
-        print num, questions1_list[num][1]
+    print questions1_list
+    # for num in range(len(questions1_list)):
+    #     print num, questions1_list[num][1]
 
 
 

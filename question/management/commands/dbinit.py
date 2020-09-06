@@ -78,7 +78,7 @@ class Command(BaseCommand):
                     continue
                 questions2_list.append((infos[u'顺序id'][line], int(infos[u'容易度'][line]),
                                         infos[u'歌手名'][line], infos[u'歌曲名'][line], infos[u'错误歌曲名'][line], url))
-        questions2_list.sort(key=itemgetter(1))
+        questions2_list.sort(key=lambda x: (x[1], x[2]))
         for item in questions2_list:
             questions1_list.append(item)
 
