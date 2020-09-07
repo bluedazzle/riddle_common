@@ -16,6 +16,8 @@ services:
     volumes:
       - ./static:/site/static:cached
       - ./conf/nginx/conf.d:/etc/nginx/conf.d:cached
+    depends_on:
+      - app
 
   postgres:
     image: postgres:latest
