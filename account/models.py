@@ -35,6 +35,7 @@ class User(BaseModel):
     reward_count = models.IntegerField(default=0)
     right_count = models.IntegerField(default=0)
     wrong_count = models.IntegerField(default=0)
+    songs_count = models.IntegerField(default=0)
     device_id = models.CharField(max_length=128, default='', null=True, blank=True)
     phone = models.IntegerField(null=True, blank=True)
     wx_open_id = models.CharField(max_length=128, default='', null=True, blank=True)

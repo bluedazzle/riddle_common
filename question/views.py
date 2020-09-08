@@ -10,7 +10,7 @@ from django.views.generic import DetailView
 
 from baseconf.models import PageConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
-from core.consts import DEFAULT_REWARD_COUNT
+from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
@@ -77,13 +77,20 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         if self.user.current_step == round_count and self.user.cash < round_cash:
             cash = round_cash - self.user.cash
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
+        video = False
+        self.user.songs_count += 1
+        if self.user.songs_count == DEFAULT_SONGS_COUNT:
+            video = True
+        elif self.user.songs_count > DEFAULT_SONGS_COUNT:
+            self.user.songs_count -= DEFAULT_SONGS_COUNT
         if obj.right_answer_id != aid:
             self.user.wrong_count += 1
             if self.user.current_level == 390:
                 self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
-            return self.render_to_response({'answer': False, 'tag': tag, 'cash': 0, 'reward': False, 'reward_url': ''})
+            return self.render_to_response(
+                {'answer': False, 'tag': tag, 'cash': 0, 'reward': False, 'reward_url': '', 'video': video})
         if self.user.current_step == round_count:
             self.user.current_step = 0
         self.user.right_count += 1
@@ -100,12 +107,12 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
             client_redis_riddle.set(REWARD_KEY.format(self.user.id), 1, 600)
         elif self.user.reward_count > DEFAULT_REWARD_COUNT:
             self.user.reward_count -= DEFAULT_REWARD_COUNT
-        if self.user.current_level == 100:
+        if self.user.current_level == 390:
             self.user.current_level = 0
         self.user.current_level += 1
         self.user.save()
         return self.render_to_response(
-            {'answer': True, 'tag': tag, 'cash': cash, 'reward': reward, 'reward_url': reward_url})
+            {'answer': True, 'tag': tag, 'cash': cash, 'reward': reward, 'reward_url': reward_url, 'video': video})
 
 
 class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
@@ -181,6 +188,7 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
         self.user.cash += int(cash)
         client_redis_riddle.delete(str(self.user.id) + 'tag')
         client_redis_riddle.delete(str(self.user.id) + 'cash')
+        self.user.songs_count = 0
         # todo 正式上线去掉 or 增加
         self.user.save()
         return JsonResponse({'isValid': True})
