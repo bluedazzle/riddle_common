@@ -23,3 +23,17 @@ def get_global_conf():
         global_conf = serializer(obj, output_type='json', exclude_attr=['create_time', 'modify_time'])
         set_global_config_to_cache(global_conf)
     return json.loads(global_conf)
+
+
+def get_withdraw_conf():
+    pass
+    from baseconf.models import WithdrawConf
+    # from core.cache import get_global_config_from_cache, set_global_config_to_cache
+    # from core.dss.Serializer import serializer
+    #
+    # global_conf = get_global_config_from_cache()
+    # if not global_conf:
+    #     obj = GlobalConf.objects.all()[0]
+    #     global_conf = serializer(obj, output_type='json', exclude_attr=['create_time', 'modify_time'])
+    #     set_global_config_to_cache(global_conf)
+    # return json.loads(global_conf)

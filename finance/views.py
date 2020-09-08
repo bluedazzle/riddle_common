@@ -10,10 +10,11 @@ from django.views.generic import DetailView
 from django.views.generic import ListView
 from django.db import transaction
 
+from baseconf.models import WithdrawConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import REWARD_KEY, client_redis_riddle
 from core.consts import DEFAULT_ALLOW_CASH_COUNT, STATUS_USED, PACKET_TYPE_CASH, PACKET_TYPE_WITHDRAW, \
-    DEFAULT_NEW_PACKET
+    DEFAULT_NEW_PACKET, DEFAULT_ALLOW_CASH_RIGHT_COUNT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from finance.forms import CashRecordForm, ExchangeRecordForm
@@ -55,18 +56,41 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMix
     http_method_names = ['post']
     conf = {}
 
+    def valid_withdraw(self, cash):
+        conf = get_global_conf()
+        allow = int(conf.get('allow_cash_right_number', DEFAULT_ALLOW_CASH_RIGHT_COUNT))
+        obj = WithdrawConf.objects.all()[0]
+        if self.user.new_withdraw:
+            raise ValidationError('新人提现机会已使用')
+        if self.user.cash < obj.withdraw_first_threshold:
+            raise ValidationError('提现可用金额不足')
+        if cash != obj.withdraw_first_threshold and cash != obj.withdraw_second_threshold and cash != obj.withdraw_third_threshold:
+            raise ValidationError('非法的体现金额')
+        if self.user.right_count < allow:
+            raise ValidationError('''抱歉
+您还没有获得提现机会
+您可以通过以下方式获得提现机会
+1. 通过答题参与抽奖
+2. 答对{0}道题
+
+当前已答对{1}道'''.format(DEFAULT_ALLOW_CASH_RIGHT_COUNT, self.user.right_count))
+
+    @transaction.atomic()
     def form_valid(self, form):
-        self.conf = get_global_conf()
-        allow_cash_count = self.conf.get("allow_cash_count", DEFAULT_ALLOW_CASH_COUNT)
-        if self.user.cash < allow_cash_count:
-            self.update_status(StatusCode.ERROR_NOT_ALLOW_CASH)
-            return self.render_to_response()
+        cash = form.cleaned_data.get('cash', 0)
+        try:
+            self.valid_withdraw(cash)
+        except Exception as e:
+            self.update_status(StatusCode.ERROR_FORM)
+            return self.render_to_response(extra={"error": e.message})
         super(CreateCashRecordView, self).form_valid(form)
         cash_record = form.save()
         cash_record.belong = self.user
         cash_record.status = 1
         cash_record.reason = ''
         cash_record.save()
+        self.user.cash -= cash
+        self.user.save()
         return self.render_to_response(dict())
 
 

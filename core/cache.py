@@ -7,6 +7,7 @@ import redis
 client_redis_riddle = None
 
 GLOBAL_CONF_KEY = 'riddle_global_conf'
+WITHDRAW_CONF_KEY = 'riddle_global_conf'
 VERIFY_CODE_KEY = '{0}_verify'
 REWARD_KEY = 'reward_{0}'
 EXPIRE_TIME = 300

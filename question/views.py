@@ -8,6 +8,7 @@ import json
 from django.http import JsonResponse
 from django.views.generic import DetailView
 
+from baseconf.models import PageConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.consts import DEFAULT_REWARD_COUNT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
@@ -69,8 +70,8 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         client_redis_riddle.set(str(self.user.id) + 'tag', tag)
         rand_num = random.random() * (high_range - low_range) + low_range
         cash = int(((2 * round_cash / round_count) -
-                    self.user.current_step * (2 * round_cash / round_count) / round_count)\
-               * rand_num + const_num)
+                    self.user.current_step * (2 * round_cash / round_count) / round_count) \
+                   * rand_num + const_num)
         # if cash < 100 and self.user.current_step < 100:
         #     cash = 102
         if self.user.current_step == round_count and self.user.cash < round_cash:
@@ -82,7 +83,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
                 self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
-            return self.render_to_response({'answer': False, 'tag': tag, 'cash': 0, 'reward': False})
+            return self.render_to_response({'answer': False, 'tag': tag, 'cash': 0, 'reward': False, 'reward_url': ''})
         if self.user.current_step == round_count:
             self.user.current_step = 0
         self.user.right_count += 1
@@ -90,8 +91,11 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         self.user.cash += cash
         self.user.reward_count += 1
         reward = False
+        reward_url = ''
         if self.user.reward_count == DEFAULT_REWARD_COUNT:
+            obj = PageConf.objects.all()[0]
             reward = True
+            reward_url = obj.rewards_url
             self.user.reward_count = 0
             client_redis_riddle.set(REWARD_KEY.format(self.user.id), 1, 600)
         elif self.user.reward_count > DEFAULT_REWARD_COUNT:
@@ -100,7 +104,8 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
             self.user.current_level = 0
         self.user.current_level += 1
         self.user.save()
-        return self.render_to_response({'answer': True, 'tag': tag, 'cash': cash, 'reward': reward})
+        return self.render_to_response(
+            {'answer': True, 'tag': tag, 'cash': cash, 'reward': reward, 'reward_url': reward_url})
 
 
 class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
