@@ -2,7 +2,8 @@
 from __future__ import unicode_literals
 
 # Create your views here.
-from django.views.generic import DetailView
+
+from django.views.generic import DetailView, ListView
 
 from core.Mixin.StatusWrapMixin import StatusWrapMixin
 from core.consts import NEW_WITHDRAW, NORMAL_WITHDRAW
@@ -32,7 +33,7 @@ class PageConfView(StatusWrapMixin, JsonResponseMixin, DetailView):
 class WithdrawConfView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     model = WithdrawConf
 
-    def get_object(self, queryset=None):
+    def get(self, request, *args, **kwargs):
         obj = self.model.objects.all()[0]
         obj_list = []
         data = {'available': False if self.user.new_withdraw else True, 'type': NEW_WITHDRAW,
@@ -47,4 +48,4 @@ class WithdrawConfView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Deta
         data = {'available': False if self.user.cash < obj.withdraw_third_threshold else True, 'type': NORMAL_WITHDRAW,
                 'amount': obj.withdraw_third_threshold, 'order_id': 3}
         obj_list.append(data)
-        return obj_list
+        return self.render_to_response({'withdraw_conf': obj_list})
