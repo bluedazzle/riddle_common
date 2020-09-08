@@ -60,12 +60,16 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMix
         conf = get_global_conf()
         allow = int(conf.get('allow_cash_right_number', DEFAULT_ALLOW_CASH_RIGHT_COUNT))
         obj = WithdrawConf.objects.all()[0]
-        if self.user.new_withdraw:
-            raise ValidationError('新人提现机会已使用')
+        if cash == obj.new_withdraw_threshold:
+            if not self.user.new_withdraw:
+                self.user.new_withdraw = True
+                return True
+            else:
+                raise ValidationError('新人提现机会已使用')
         if self.user.cash < obj.withdraw_first_threshold:
             raise ValidationError('提现可用金额不足')
         if cash != obj.withdraw_first_threshold and cash != obj.withdraw_second_threshold and cash != obj.withdraw_third_threshold:
-            raise ValidationError('非法的体现金额')
+            raise ValidationError('非法的提现金额')
         if self.user.right_count < allow:
             raise ValidationError('''抱歉
 您还没有获得提现机会
