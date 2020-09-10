@@ -10,7 +10,7 @@ from django.views.generic import DetailView
 
 from baseconf.models import PageConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
-from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT
+from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS_THRESHOLD
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
@@ -54,7 +54,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
     def get(self, request, *args, **kwargs):
         self.conf = get_global_conf()
         round_cash = self.conf.get('round_cash', 30000)
-        round_count = self.conf.get('round_count', 500)
+        round_count = self.conf.get('round_count', 700)
         low_range = self.conf.get('low_range', 0.5)
         high_range = self.conf.get('high_range', 1.5)
         const_num = self.conf.get('const_num', 0)
@@ -79,9 +79,11 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
         video = False
         self.user.songs_count += 1
-        if self.user.songs_count == DEFAULT_SONGS_COUNT:
+        if self.user.songs_count > DEFAULT_SONGS_THRESHOLD and \
+                (self.user.songs_count - DEFAULT_SONGS_THRESHOLD) == DEFAULT_SONGS_COUNT:
             video = True
-        elif self.user.songs_count > DEFAULT_SONGS_COUNT:
+        elif self.user.songs_count > DEFAULT_SONGS_THRESHOLD and \
+                (self.user.songs_count - DEFAULT_SONGS_THRESHOLD) > DEFAULT_SONGS_COUNT:
             self.user.songs_count -= DEFAULT_SONGS_COUNT
         if obj.right_answer_id != aid:
             self.user.wrong_count += 1
@@ -188,7 +190,8 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
         self.user.cash += int(cash)
         client_redis_riddle.delete(str(self.user.id) + 'tag')
         client_redis_riddle.delete(str(self.user.id) + 'cash')
-        self.user.songs_count = 0
+        if self.user.songs_count > DEFAULT_SONGS_THRESHOLD:
+            self.user.songs_count = DEFAULT_SONGS_THRESHOLD
         # todo 正式上线去掉 or 增加
         self.user.save()
         return JsonResponse({'isValid': True})
