@@ -68,14 +68,18 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
             random.sample('ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
                           self.count)).replace(" ", "")
         client_redis_riddle.set(str(self.user.id) + 'tag', tag)
+
         rand_num = random.random() * (high_range - low_range) + low_range
-        cash = int(((2 * round_cash / round_count) -
-                    self.user.current_step * (2 * round_cash / round_count) / round_count) \
-                   * rand_num + const_num)
+        # cash = int(((2 * round_cash / round_count) -
+        #             self.user.current_step * (2 * round_cash / round_count) / round_count) \
+        #            * rand_num + const_num)
         # if cash < 100 and self.user.current_step < 100:
         #     cash = 102
-        if self.user.current_step == round_count and self.user.cash < round_cash:
-            cash = round_cash - self.user.cash
+        # if self.user.current_step == round_count and self.user.cash < round_cash:
+        #     cash = round_cash - self.user.cash
+
+        cash = max((round_cash-self.user.cash)/(round_count-self.user.current_step)*(3-2*self.user.current_step/round_count)*rand_num, 5*rand_num)
+
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
         video = False
         self.user.songs_count += 1
