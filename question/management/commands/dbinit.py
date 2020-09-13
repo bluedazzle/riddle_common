@@ -66,7 +66,7 @@ class Command(BaseCommand):
                 continue
             questions_list.append((int(infos[u'容易度'][line]), infos[u'歌手名'][line],
                                    infos[u'歌曲名'][line], infos[u'错误歌曲名'][line], url))
-        questions_list.sort(key=lambda x: (x[0], x[1]))
+        questions_list.sort(key=lambda x: (x[0], x[2]))
 
         for num in range(len(questions_list)):
             obj_question = model_question(title=u'猜猜这首歌叫什么', order_id=num+1, question_type=1, difficult=questions_list[num][0],
