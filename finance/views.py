@@ -103,7 +103,7 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
         cash_record.save()
         self.user.cash -= cash
         self.user.save()
-        send_money_by_open_id(suid, self.user.wx_open_id, cash)
+        # send_money_by_open_id(suid, self.user.wx_open_id, cash)
         return self.render_to_response(dict())
 
 
