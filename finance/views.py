@@ -29,7 +29,7 @@ class CashRecordListView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseM
     slug_field = 'token'
     paginate_by = 2
     ordering = ('-create_time',)
-    datetime_type = 'timestamp'
+    datetime_type = 'string'
 
     def get_list_by_user(self):
         self.queryset = self.model.objects.filter(belong=self.user)
@@ -71,10 +71,10 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
                 return True
             else:
                 raise ValidationError('新人提现机会已使用')
-        if self.user.cash < obj.withdraw_first_threshold:
-            raise ValidationError('提现可用金额不足')
         if cash != obj.withdraw_first_threshold and cash != obj.withdraw_second_threshold and cash != obj.withdraw_third_threshold:
             raise ValidationError('非法的提现金额')
+        if self.user.cash < obj.withdraw_first_threshold:
+            raise ValidationError('提现可用金额不足')
         if self.user.right_count < allow:
             raise ValidationError('''抱歉
 您还没有获得提现机会
