@@ -11,6 +11,7 @@ from core.consts import PACKET_TYPE_NEW_CASH, PACKET_TYPE_CASH, PACKET_TYPE_EXTE
 
 
 class CashRecord(BaseModel):
+    trade_no = models.CharField(max_length=128, unique=True, default='')
     cash = models.IntegerField()
     status = models.IntegerField(default=1)
     reason = models.CharField(max_length=128, default='')

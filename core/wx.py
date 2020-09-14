@@ -6,9 +6,12 @@ import requests
 
 # from django.core.cache import cache
 # from django.utils import timezone
+from core.pyutil.net.get_local_ip import get_local_ip
 
 APP_KEY = 'wx0a70602b8b19b1e5'
 APP_SECRET = '77b167cb1b9f4cc491010207d79b4f61'
+WX_MCH_KEY = 'atpexFTVI97mPZfhwwlLdGdvuizulgyq'
+WX_MCH_ID = '1602484372'
 
 
 def get_access_token(source='riddle'):
@@ -88,6 +91,25 @@ def get_user_info(access_token, open_id):
         raise e
 
 
-# a = get_user_info('36_JfpsAim5IsbKJga0EIFmwPBilywps41UGGZeYpUnZsC8wSEy1RS92sxFm2oJP7a2uZcFJjIjjCxvBUwhoQiZa6T38FCGq9-CpzodaMlPFS8', 'oJhFr6Q66rQqXSE2nnBOBbNcchJ0')
-#
-# print a.get('province').encode('raw_unicode_escape')
+def send_money_by_open_id(partner_trade_no, open_id, amount=30):
+    from wx_pay import WxPay, WxPayError
+    pay = WxPay(
+        wx_app_id=APP_KEY,  # 微信平台appid
+        wx_mch_id=WX_MCH_ID,  # 微信支付商户号
+        wx_mch_key=WX_MCH_KEY,
+        # wx_mch_key 微信支付重要密钥，请登录微信支付商户平台，在 账户中心-API安全-设置API密钥设置
+        wx_notify_url='http://cc.rapo.cc:801/'
+        # wx_notify_url 接受微信付款消息通知地址（通常比自己把支付成功信号写在js里要安全得多，推荐使用这个来接收微信支付成功通知）
+        # wx_notify_url 开发详见https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_7
+    )
+    resp = pay.enterprise_payment(openid=open_id, check_name=False, amount=amount, desc='用户提现',
+                                  partner_trade_no=partner_trade_no,
+                                  spbill_create_ip=get_local_ip(),
+                                  api_cert_path='/cert/apiclient_cert.pem',
+                                  api_key_path='/cert/apiclient_key.pem')
+    print resp
+
+
+    # a = get_user_info('36_JfpsAim5IsbKJga0EIFmwPBilywps41UGGZeYpUnZsC8wSEy1RS92sxFm2oJP7a2uZcFJjIjjCxvBUwhoQiZa6T38FCGq9-CpzodaMlPFS8', 'oJhFr6Q66rQqXSE2nnBOBbNcchJ0')
+    #
+    # print a.get('province').encode('raw_unicode_escape')

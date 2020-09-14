@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 # Create your views here.
 import random
+import uuid
 
 from django.core.exceptions import ValidationError
 from django.views.generic import CreateView
@@ -18,6 +19,7 @@ from core.consts import DEFAULT_ALLOW_CASH_COUNT, STATUS_USED, PACKET_TYPE_CASH,
     DEFAULT_NEW_PACKET, DEFAULT_ALLOW_CASH_RIGHT_COUNT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
+from core.wx import send_money_by_open_id
 from finance.forms import CashRecordForm, ExchangeRecordForm
 from finance.models import CashRecord, ExchangeRecord, RedPacket
 
@@ -58,6 +60,8 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
     conf = {}
 
     def valid_withdraw(self, cash):
+        if not self.user.wx_open_id:
+            raise ValidationError('请绑定微信后提现')
         conf = get_global_conf()
         allow = int(conf.get('allow_cash_right_number', DEFAULT_ALLOW_CASH_RIGHT_COUNT))
         obj = WithdrawConf.objects.all()[0]
@@ -82,6 +86,8 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
 
     @transaction.atomic()
     def form_valid(self, form):
+        uid = unicode(uuid.uuid1())
+        suid = ''.join(uid.split('-'))
         cash = form.cleaned_data.get('cash', 0)
         try:
             self.valid_withdraw(cash)
@@ -93,13 +99,15 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
         cash_record.belong = self.user
         cash_record.status = 1
         cash_record.reason = ''
+        cash_record.trade_no = suid
         cash_record.save()
         self.user.cash -= cash
         self.user.save()
+        send_money_by_open_id(suid, self.user.wx_open_id, cash)
         return self.render_to_response(dict())
 
 
-class CreateExchangeRecordView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, CreateView):
+class CreateExchangeRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, FormJsonResponseMixin, CreateView):
     form_class = ExchangeRecordForm
     http_method_names = ['post']
     conf = {}
