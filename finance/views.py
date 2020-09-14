@@ -11,6 +11,7 @@ from django.views.generic import ListView
 from django.db import transaction
 
 from baseconf.models import WithdrawConf
+from core.Mixin.JsonRequestMixin import JsonRequestMixin
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import REWARD_KEY, client_redis_riddle
 from core.consts import DEFAULT_ALLOW_CASH_COUNT, STATUS_USED, PACKET_TYPE_CASH, PACKET_TYPE_WITHDRAW, \
@@ -51,7 +52,7 @@ class ExchangeRecordListView(CheckTokenMixin, StatusWrapMixin, MultipleJsonRespo
         return super(ExchangeRecordListView, self).get_queryset()
 
 
-class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, CreateView):
+class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, FormJsonResponseMixin, CreateView):
     form_class = CashRecordForm
     http_method_names = ['post']
     conf = {}
