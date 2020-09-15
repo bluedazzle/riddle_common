@@ -108,6 +108,14 @@ def send_money_by_open_id(partner_trade_no, open_id, amount=30):
                                   api_cert_path='/cert/apiclient_cert.pem',
                                   api_key_path='/cert/apiclient_key.pem')
     print resp
+    return resp
+    # {'return_code': 'SUCCESS', 'mch_appid': 'wx0a70602b8b19b1e5', 'mchid': '1602484372', 'err_code_des': u'余额不足',
+    #  'return_msg': u'支付失败', 'result_code': 'FAIL', 'err_code': 'NOTENOUGH'}
+
+    # {'partner_trade_no': 'c0f55e7af76411ea94c90242ac190004', 'payment_time': '2020-09-15 23:04:30',
+    #  'nonce_str': 'uCN7y1s5X23ig9cglWPoBSDWwVBL1ekB', 'return_code': 'SUCCESS', 'mch_appid': 'wx0a70602b8b19b1e5',
+    #  'payment_no': '10101234959572009156777584613085', 'mchid': '1602484372', 'return_msg': None,
+    #  'result_code': 'SUCCESS'}
 
 
     # a = get_user_info('36_JfpsAim5IsbKJga0EIFmwPBilywps41UGGZeYpUnZsC8wSEy1RS92sxFm2oJP7a2uZcFJjIjjCxvBUwhoQiZa6T38FCGq9-CpzodaMlPFS8', 'oJhFr6Q66rQqXSE2nnBOBbNcchJ0')

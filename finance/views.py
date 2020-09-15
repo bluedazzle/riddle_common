@@ -16,7 +16,7 @@ from core.Mixin.JsonRequestMixin import JsonRequestMixin
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import REWARD_KEY, client_redis_riddle
 from core.consts import DEFAULT_ALLOW_CASH_COUNT, STATUS_USED, PACKET_TYPE_CASH, PACKET_TYPE_WITHDRAW, \
-    DEFAULT_NEW_PACKET, DEFAULT_ALLOW_CASH_RIGHT_COUNT
+    DEFAULT_NEW_PACKET, DEFAULT_ALLOW_CASH_RIGHT_COUNT, STATUS_FAIL, STATUS_REVIEW, STATUS_FINISH
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.wx import send_money_by_open_id
@@ -95,15 +95,24 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
             self.update_status(StatusCode.ERROR_FORM)
             return self.render_to_response(extra={"error": e.message})
         super(CreateCashRecordView, self).form_valid(form)
+        resp = send_money_by_open_id(suid, self.user.wx_open_id, cash)
         cash_record = form.save()
         cash_record.belong = self.user
-        cash_record.status = 1
-        cash_record.reason = ''
+        cash_record.status = STATUS_REVIEW
+        cash_record.reason = '成功'
         cash_record.trade_no = suid
+        if resp.get('result_code') == 'SUCCESS':
+            self.user.cash -= cash
+            cash_record.status = STATUS_FINISH
+        else:
+            fail_message = resp.get('err_code_des', 'default_error')
+            cash_record.reason = fail_message
+            cash_record.status = STATUS_FAIL
+            obj = WithdrawConf.objects.all()[0]
+            if cash == obj.new_withdraw_threshold:
+                self.user.new_withdraw = False
         cash_record.save()
-        self.user.cash -= cash
         self.user.save()
-        # send_money_by_open_id(suid, self.user.wx_open_id, cash)
         return self.render_to_response(dict())
 
 
