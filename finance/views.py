@@ -16,7 +16,8 @@ from core.Mixin.JsonRequestMixin import JsonRequestMixin
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import REWARD_KEY, client_redis_riddle
 from core.consts import DEFAULT_ALLOW_CASH_COUNT, STATUS_USED, PACKET_TYPE_CASH, PACKET_TYPE_WITHDRAW, \
-    DEFAULT_NEW_PACKET, DEFAULT_ALLOW_CASH_RIGHT_COUNT, STATUS_FAIL, STATUS_REVIEW, STATUS_FINISH
+    DEFAULT_NEW_PACKET, DEFAULT_ALLOW_CASH_RIGHT_COUNT, STATUS_FAIL, STATUS_REVIEW, STATUS_FINISH, \
+    DEFAULT_MAX_CASH_LIMIT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.wx import send_money_by_open_id
@@ -66,6 +67,8 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
         allow = int(conf.get('allow_cash_right_number', DEFAULT_ALLOW_CASH_RIGHT_COUNT))
         obj = WithdrawConf.objects.all()[0]
         if cash == obj.new_withdraw_threshold:
+            if self.user.current_level < 11:
+                raise ValidationError('答题10道即可提现')
             if not self.user.new_withdraw:
                 self.user.new_withdraw = True
                 return True
@@ -161,7 +164,11 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
 
     def get_reward(self):
         reward_list = []
-        amount = random.randint(50, 500)
+        amount = 0
+        if self.user.cash >= DEFAULT_MAX_CASH_LIMIT:
+            amount = random.randint(1, 2)
+        else:
+            amount = random.randint(20, 500)
         rp = RedPacket()
         rp.amount = amount
         rp.status = STATUS_USED
@@ -177,11 +184,11 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
         if reward1 == PACKET_TYPE_CASH:
             reward_list.append({'reward_type': PACKET_TYPE_CASH, 'amount': amount, 'hit': False})
         else:
-            reward_list.append({'reward_type': reward1, 'amount': 0, 'hit': False})
+            reward_list.append({'reward_type': reward1, 'amount': 1, 'hit': False})
         if reward2 == PACKET_TYPE_CASH:
             reward_list.append({'reward_type': PACKET_TYPE_CASH, 'amount': amount, 'hit': False})
         else:
-            reward_list.append({'reward_type': reward2, 'amount': 0, 'hit': False})
+            reward_list.append({'reward_type': reward2, 'amount': 1, 'hit': False})
         return reward_list
 
     def get_new_reward(self):

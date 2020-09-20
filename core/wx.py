@@ -102,7 +102,7 @@ def send_money_by_open_id(partner_trade_no, open_id, amount=30):
         # wx_notify_url 接受微信付款消息通知地址（通常比自己把支付成功信号写在js里要安全得多，推荐使用这个来接收微信支付成功通知）
         # wx_notify_url 开发详见https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_7
     )
-    resp = pay.enterprise_payment(openid=open_id, check_name=False, amount=amount, desc='用户提现',
+    resp = pay.enterprise_payment(openid=open_id, check_name=False, amount=amount, desc='欢乐猜猜歌用户提现',
                                   partner_trade_no=partner_trade_no,
                                   spbill_create_ip=get_local_ip(),
                                   api_cert_path='/cert/apiclient_cert.pem',
