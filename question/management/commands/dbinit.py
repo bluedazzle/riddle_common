@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 import pandas as pd
 import pypinyin
 import urllib2
+import random
+import string
 import numpy as np
 from operator import itemgetter
 
@@ -66,9 +68,13 @@ class Command(BaseCommand):
                 continue
             if resp.getcode() != 200:
                 continue
+            tag = string.join(
+                random.sample(
+                    'ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
+                    32)).replace(" ", "")
             questions_list.append((int(infos[u'容易度'][line]), infos[u'歌手名'][line],
-                                   infos[u'正确歌曲名'][line], infos[u'错误歌曲名'][line], url))
-        questions_list.sort(key=lambda x: (x[0], x[3]))
+                                   infos[u'正确歌曲名'][line], infos[u'错误歌曲名'][line], url, tag))
+        questions_list.sort(key=lambda x: (x[0], x[5]))
 
         for num in range(len(questions_list)):
             questions_song += 1
@@ -92,9 +98,13 @@ class Command(BaseCommand):
         #         continue
         #     if resp.getcode() != 200:
         #         continue
+        #     tag = string.join(
+        #                 random.sample(
+        #                     'ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
+        #                     32)).replace(" ", "")
         #     questions_singer_list.append((int(infos[u'容易度'][line]), infos[u'歌手名'][line],
-        #                            infos[u'正确歌曲名'][line], infos[u'错误歌手名'][line], url))
-        # questions_singer_list.sort(key=lambda x: (x[0], x[3]))
+        #                            infos[u'正确歌曲名'][line], infos[u'错误歌手名'][line], url, tag))
+        # questions_singer_list.sort(key=lambda x: (x[0], x[5]))
         #
         # for num in range(len(questions_singer_list)):
         #     obj_question = model_question(title=u'猜猜歌手叫什么', order_id=num+questions_song+1, question_type=2, difficult=questions_singer_list[num][0],
