@@ -182,11 +182,11 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
         if reward1 == PACKET_TYPE_CASH:
             reward_list.append({'reward_type': PACKET_TYPE_CASH, 'amount': amount, 'hit': False})
         else:
-            reward_list.append({'reward_type': reward1, 'amount': 0, 'hit': False})
+            reward_list.append({'reward_type': reward1, 'amount': 1, 'hit': False})
         if reward2 == PACKET_TYPE_CASH:
             reward_list.append({'reward_type': PACKET_TYPE_CASH, 'amount': amount, 'hit': False})
         else:
-            reward_list.append({'reward_type': reward2, 'amount': 0, 'hit': False})
+            reward_list.append({'reward_type': reward2, 'amount': 1, 'hit': False})
         return reward_list
 
     def get_new_reward(self):
