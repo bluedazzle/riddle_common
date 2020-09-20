@@ -16,7 +16,8 @@ from core.Mixin.JsonRequestMixin import JsonRequestMixin
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import REWARD_KEY, client_redis_riddle
 from core.consts import DEFAULT_ALLOW_CASH_COUNT, STATUS_USED, PACKET_TYPE_CASH, PACKET_TYPE_WITHDRAW, \
-    DEFAULT_NEW_PACKET, DEFAULT_ALLOW_CASH_RIGHT_COUNT, STATUS_FAIL, STATUS_REVIEW, STATUS_FINISH
+    DEFAULT_NEW_PACKET, DEFAULT_ALLOW_CASH_RIGHT_COUNT, STATUS_FAIL, STATUS_REVIEW, STATUS_FINISH, \
+    DEFAULT_MAX_CASH_LIMIT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.wx import send_money_by_open_id
@@ -161,7 +162,11 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
 
     def get_reward(self):
         reward_list = []
-        amount = random.randint(50, 500)
+        amount = 0
+        if self.user.cash >= DEFAULT_MAX_CASH_LIMIT:
+            amount = random.randint(1, 5)
+        else:
+            amount = random.randint(20, 500)
         rp = RedPacket()
         rp.amount = amount
         rp.status = STATUS_USED
