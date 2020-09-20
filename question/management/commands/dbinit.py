@@ -78,4 +78,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # self.song_init(u'question/management/commands/songs.xlsx', 100)
-        self.question_init(u'question/management/commands/songs.xlsx', 500)
+        self.question_init(u'question/management/commands/songs.xlsx', 626)
