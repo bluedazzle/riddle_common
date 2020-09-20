@@ -91,6 +91,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
             self.user.songs_count -= DEFAULT_SONGS_COUNT
         if obj.right_answer_id != aid:
             self.user.wrong_count += 1
+            self.user.reward_count = 0
             if self.user.current_level == 500:
                 self.user.current_level = 0
             self.user.current_level += 1

@@ -3,4 +3,10 @@ from account.models import User
 
 # Register your models here.
 
-admin.site.register(User)
+
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('name', 'city', 'create_time', 'modify_time', 'current_level', 'new_withdraw', 'cash')
+    search_fields = ('name',)
+
+
+admin.site.register(User, UserAdmin)

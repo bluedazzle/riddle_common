@@ -4,6 +4,7 @@ services:
     build: ./
     volumes:
       - ./:/site:rw
+      - ~/repos/cert:/cert/
     depends_on:
       - postgres
       - redis
@@ -12,7 +13,7 @@ services:
     image: nginx:latest
     restart: always
     ports:
-      - "8080:80" # 正式部署改为绑定外部 80
+      - "8001:80" # 正式部署改为绑定外部 80
     volumes:
       - ./static:/site/static:cached
       - ./conf/nginx/conf.d:/etc/nginx/conf.d:cached

@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 # Create your views here.
 import random
+import uuid
 
 from django.core.exceptions import ValidationError
 from django.views.generic import CreateView
@@ -11,12 +12,15 @@ from django.views.generic import ListView
 from django.db import transaction
 
 from baseconf.models import WithdrawConf
+from core.Mixin.JsonRequestMixin import JsonRequestMixin
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import REWARD_KEY, client_redis_riddle
 from core.consts import DEFAULT_ALLOW_CASH_COUNT, STATUS_USED, PACKET_TYPE_CASH, PACKET_TYPE_WITHDRAW, \
-    DEFAULT_NEW_PACKET, DEFAULT_ALLOW_CASH_RIGHT_COUNT
+    DEFAULT_NEW_PACKET, DEFAULT_ALLOW_CASH_RIGHT_COUNT, STATUS_FAIL, STATUS_REVIEW, STATUS_FINISH, \
+    DEFAULT_MAX_CASH_LIMIT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
+from core.wx import send_money_by_open_id
 from finance.forms import CashRecordForm, ExchangeRecordForm
 from finance.models import CashRecord, ExchangeRecord, RedPacket
 
@@ -26,7 +30,7 @@ class CashRecordListView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseM
     slug_field = 'token'
     paginate_by = 2
     ordering = ('-create_time',)
-    datetime_type = 'timestamp'
+    datetime_type = 'string'
 
     def get_list_by_user(self):
         self.queryset = self.model.objects.filter(belong=self.user)
@@ -51,12 +55,14 @@ class ExchangeRecordListView(CheckTokenMixin, StatusWrapMixin, MultipleJsonRespo
         return super(ExchangeRecordListView, self).get_queryset()
 
 
-class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, CreateView):
+class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, FormJsonResponseMixin, CreateView):
     form_class = CashRecordForm
     http_method_names = ['post']
     conf = {}
 
     def valid_withdraw(self, cash):
+        if not self.user.wx_open_id:
+            raise ValidationError('请绑定微信后提现')
         conf = get_global_conf()
         allow = int(conf.get('allow_cash_right_number', DEFAULT_ALLOW_CASH_RIGHT_COUNT))
         obj = WithdrawConf.objects.all()[0]
@@ -66,10 +72,10 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMix
                 return True
             else:
                 raise ValidationError('新人提现机会已使用')
-        if self.user.cash < obj.withdraw_first_threshold:
-            raise ValidationError('提现可用金额不足')
         if cash != obj.withdraw_first_threshold and cash != obj.withdraw_second_threshold and cash != obj.withdraw_third_threshold:
             raise ValidationError('非法的提现金额')
+        if self.user.cash < obj.withdraw_first_threshold:
+            raise ValidationError('提现可用金额不足')
         if self.user.right_count < allow:
             raise ValidationError('''抱歉
 您还没有获得提现机会
@@ -81,6 +87,8 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMix
 
     @transaction.atomic()
     def form_valid(self, form):
+        uid = unicode(uuid.uuid1())
+        suid = ''.join(uid.split('-'))
         cash = form.cleaned_data.get('cash', 0)
         try:
             self.valid_withdraw(cash)
@@ -88,17 +96,28 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMix
             self.update_status(StatusCode.ERROR_FORM)
             return self.render_to_response(extra={"error": e.message})
         super(CreateCashRecordView, self).form_valid(form)
+        resp = send_money_by_open_id(suid, self.user.wx_open_id, cash)
         cash_record = form.save()
         cash_record.belong = self.user
-        cash_record.status = 1
-        cash_record.reason = ''
+        cash_record.status = STATUS_REVIEW
+        cash_record.reason = '成功'
+        cash_record.trade_no = suid
+        if resp.get('result_code') == 'SUCCESS':
+            self.user.cash -= cash
+            cash_record.status = STATUS_FINISH
+        else:
+            fail_message = resp.get('err_code_des', 'default_error')
+            cash_record.reason = fail_message
+            cash_record.status = STATUS_FAIL
+            obj = WithdrawConf.objects.all()[0]
+            if cash == obj.new_withdraw_threshold:
+                self.user.new_withdraw = False
         cash_record.save()
-        self.user.cash -= cash
         self.user.save()
         return self.render_to_response(dict())
 
 
-class CreateExchangeRecordView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, CreateView):
+class CreateExchangeRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, FormJsonResponseMixin, CreateView):
     form_class = ExchangeRecordForm
     http_method_names = ['post']
     conf = {}
@@ -143,7 +162,11 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
 
     def get_reward(self):
         reward_list = []
-        amount = random.randint(50, 500)
+        amount = 0
+        if self.user.cash >= DEFAULT_MAX_CASH_LIMIT:
+            amount = random.randint(1, 5)
+        else:
+            amount = random.randint(20, 500)
         rp = RedPacket()
         rp.amount = amount
         rp.status = STATUS_USED
@@ -159,11 +182,11 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
         if reward1 == PACKET_TYPE_CASH:
             reward_list.append({'reward_type': PACKET_TYPE_CASH, 'amount': amount, 'hit': False})
         else:
-            reward_list.append({'reward_type': reward1, 'amount': 0, 'hit': False})
+            reward_list.append({'reward_type': reward1, 'amount': 1, 'hit': False})
         if reward2 == PACKET_TYPE_CASH:
             reward_list.append({'reward_type': PACKET_TYPE_CASH, 'amount': amount, 'hit': False})
         else:
-            reward_list.append({'reward_type': reward2, 'amount': 0, 'hit': False})
+            reward_list.append({'reward_type': reward2, 'amount': 1, 'hit': False})
         return reward_list
 
     def get_new_reward(self):

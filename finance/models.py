@@ -7,17 +7,24 @@ from account.models import BaseModel, User
 
 # Create your models here.
 from core.consts import PACKET_TYPE_NEW_CASH, PACKET_TYPE_CASH, PACKET_TYPE_EXTEND, PACKET_TYPE_PHONE, \
-    PACKET_TYPE_WITHDRAW
+    PACKET_TYPE_WITHDRAW, STATUS_FAIL, STATUS_REVIEW, STATUS_FINISH
 
 
 class CashRecord(BaseModel):
+    status_choices = (
+        (STATUS_FAIL, '提现失败'),
+        (STATUS_REVIEW, '提现中'),
+        (STATUS_FINISH, '提现完成'),
+    )
+
+    trade_no = models.CharField(max_length=128, unique=True, default='')
     cash = models.IntegerField()
-    status = models.IntegerField(default=1)
+    status = models.IntegerField(default=STATUS_REVIEW, choices=status_choices)
     reason = models.CharField(max_length=128, default='')
     belong = models.ForeignKey(User)
 
     def __unicode__(self):
-        return '{0}'.format(self.cash)
+        return '{0} 提现 {1} 状态: {2} 时间: {3}'.format(self.belong.name, self.cash, self.status, self.create_time)
 
 
 class ExchangeRecord(BaseModel):
@@ -45,4 +52,4 @@ class RedPacket(BaseModel):
     belong = models.ForeignKey(User)
 
     def __unicode__(self):
-        return self.amount
+        return '{0}-{1} {2}'.format(self.belong.name, self.amount, self.create_time)
