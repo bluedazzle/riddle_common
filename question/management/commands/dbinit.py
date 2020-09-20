@@ -25,18 +25,18 @@ class Command(BaseCommand):
     # def song_init(self, execl, songs=0):
     #     model = Song
     #     df = pd.read_excel(execl, sheet_name=u'songs', encoding='utf-8')
-    #     infos = df.ix[:, [u'歌手名', u'歌曲名']]
+    #     infos = df.ix[:, [u'歌手名', u'正确歌曲名']]
     #     if songs == 0:
     #         lines = len(infos[u'歌手名'])
     #     else:
     #         lines = songs
     #     for line in range(lines):
-    #         url = prefix + self.pingyin(infos[u'歌手名'][line]) + '_' + self.pingyin(infos[u'歌曲名'][line]) + '.m4a'
+    #         url = prefix + self.pingyin(infos[u'歌手名'][line]) + '_' + self.pingyin(infos[u'正确歌曲名'][line]) + '.m4a'
     #         print url
     #         objs = model.objects.filter(resource_url=url).all()
     #         if objs.exists():
     #             continue
-    #         obj = model(singer=infos[u'歌手名'][line], name=infos[u'歌曲名'][line], resource_url=url)
+    #         obj = model(singer=infos[u'歌手名'][line], name=infos[u'正确歌曲名'][line], resource_url=url)
     #         obj.save()
 
     def question_init(self, execl, questions=0):
@@ -53,11 +53,11 @@ class Command(BaseCommand):
         else:
             lines = questions
         for line in range(lines):
-            if pd.isna(infos[u'是否完成'][line]) or pd.isna(infos[u'歌手名'][line]) or pd.isna(infos[u'歌曲名'][line]) \
+            if pd.isna(infos[u'是否完成'][line]) or pd.isna(infos[u'歌手名'][line]) or pd.isna(infos[u'正确歌曲名'][line]) \
                     or pd.isna(infos[u'容易度'][line]) or pd.isna(infos[u'错误歌曲名'][line]):
                 continue
             url = prefix + self.pingyin(infos[u'歌手名'][line]).replace('，', '') + '_' + self.pingyin(
-                infos[u'歌曲名'][line]).replace('，', '') + '.m4a'
+                infos[u'正确歌曲名'][line]).replace('，', '') + '.m4a'
             try:
                 resp = urllib2.urlopen(str(url))
             except:
@@ -65,7 +65,7 @@ class Command(BaseCommand):
             if resp.getcode() != 200:
                 continue
             questions_list.append((int(infos[u'容易度'][line]), infos[u'歌手名'][line],
-                                   infos[u'歌曲名'][line], infos[u'错误歌曲名'][line], url))
+                                   infos[u'正确歌曲名'][line], infos[u'错误歌曲名'][line], url))
         questions_list.sort(key=lambda x: (x[0], x[2]))
 
         for num in range(len(questions_list)):
