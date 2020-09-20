@@ -92,7 +92,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         if obj.right_answer_id != aid:
             self.user.wrong_count += 1
             self.user.reward_count = 0
-            if self.user.current_level == 500:
+            if self.user.current_level == 790:
                 self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
@@ -114,7 +114,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
             client_redis_riddle.set(REWARD_KEY.format(self.user.id), 1, 600)
         elif self.user.reward_count > DEFAULT_REWARD_COUNT:
             self.user.reward_count -= DEFAULT_REWARD_COUNT
-        if self.user.current_level == 500:
+        if self.user.current_level == 790:
             self.user.current_level = 0
         self.user.current_level += 1
         self.user.save()
