@@ -43,7 +43,7 @@ class Command(BaseCommand):
         model_question = Question
         model_song = Song
         df = pd.read_excel(execl, sheet_name=u'songs', encoding='utf-8')
-        infos = df.ix[:, [u'是否完成', u'歌手名', u'歌曲名', u'容易度', u'错误歌曲名']]
+        infos = df.ix[:, [u'是否完成', u'歌手名', u'正确歌曲名', u'容易度', u'错误歌曲名']]
         questions_list = []
         model_question.objects.all().delete()
         model_song.objects.all().delete()
