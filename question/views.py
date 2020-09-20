@@ -83,10 +83,10 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
         video = False
         self.user.songs_count += 1
-        if self.user.songs_count > DEFAULT_SONGS_THRESHOLD and self.user.songs_count <= DEFAULT_SONGS_TWO_THRESHOLD and \
+        if self.user.current_level > DEFAULT_SONGS_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_TWO_THRESHOLD and \
                 self.user.songs_count % DEFAULT_SONGS_COUNT == 0:
             video = True
-        elif self.user.songs_count > DEFAULT_SONGS_TWO_THRESHOLD and \
+        elif self.user.current_level > DEFAULT_SONGS_TWO_THRESHOLD and \
                 self.user.songs_count % DEFAULT_SONGS_TWO_COUNT == 0:
             video = True
         # elif self.user.songs_count > DEFAULT_SONGS_THRESHOLD and \
@@ -198,8 +198,8 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
         self.user.cash += int(cash)
         client_redis_riddle.delete(str(self.user.id) + 'tag')
         client_redis_riddle.delete(str(self.user.id) + 'cash')
-        if self.user.songs_count > DEFAULT_SONGS_THRESHOLD:
-            self.user.songs_count = DEFAULT_SONGS_THRESHOLD
+        if self.user.songs_count > 0:
+            self.user.songs_count = 0
         # todo 正式上线去掉 or 增加
         self.user.save()
         return JsonResponse({'isValid': True})
