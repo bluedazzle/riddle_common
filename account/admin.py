@@ -5,7 +5,7 @@ from account.models import User
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('name', 'city', 'create_time', 'current_level', 'new_withdraw', 'cash')
+    list_display = ('name', 'city', 'create_time', 'modify_time', 'current_level', 'new_withdraw', 'cash')
     search_fields = ('name',)
 
 
