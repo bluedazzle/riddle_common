@@ -79,8 +79,8 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         #     cash = round_cash - self.user.cash
 
         cash = int(max((round_cash-self.user.cash)/(round_count-self.user.current_step)*(3-2*self.user.current_step/round_count)*rand_num, 1))
-        # print("round_cash: " + str(round_cash) + " user_cash: " + str(self.user.cash) + " round_count: " + str(round_count) +
-        #       " current_step: " + str(self.user.current_step) + " rand_num: " + str(rand_num) + " cash: " + str(cash))
+        print("round_cash: " + str(round_cash) + " user_cash: " + str(self.user.cash) + " round_count: " + str(round_count) +
+              " current_step: " + str(self.user.current_step) + " rand_num: " + str(rand_num) + " cash: " + str(cash))
 
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
         video = False
