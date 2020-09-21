@@ -28,6 +28,8 @@ SECRET_KEY = '+matthg$w)x_5#ax0uug(jdy0)@^5(a)%w6mr$bmbcsac-n7x4'
 DEBUG = conf.debug == 'True'
 
 ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
     '202.112.237.65',
     'app.guess-song.plutus-cat.com',
     'tapp.guess-song.plutus-cat.com',
@@ -48,13 +50,12 @@ INSTALLED_APPS = [
     'baseconf',
 ]
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]

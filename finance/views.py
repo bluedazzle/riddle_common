@@ -89,7 +89,7 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
 
     @transaction.atomic()
     def form_valid(self, form):
-        uid = unicode(uuid.uuid1())
+        uid = str(uuid.uuid1())
         suid = ''.join(uid.split('-'))
         cash = form.cleaned_data.get('cash', 0)
         try:

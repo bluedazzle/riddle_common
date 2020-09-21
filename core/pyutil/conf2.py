@@ -5,7 +5,6 @@ import string
 import os
 import sys
 
-from urlparse import urlparse, parse_qs
 
 from core.pyutil.net import is_python3
 
@@ -78,8 +77,10 @@ class ConfParse(object):
         # Parse manual configures.
         man_qs = "?%s" % man_qs
         if is_python3:
-            qs_dic = parse.parse_qs(urlparse.urlparse(man_qs).query)
+            from urllib import parse
+            qs_dic = parse.parse_qs(parse.urlparse(man_qs).query)
         else:
+            from urlparse import urlparse
             qs_dic = urlparse.parse_qs(urlparse.urlparse(man_qs).query)
         if not qs_dic:
             # There isn't a manual value.

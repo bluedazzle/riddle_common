@@ -21,9 +21,12 @@ class CashRecord(BaseModel):
     cash = models.IntegerField()
     status = models.IntegerField(default=STATUS_REVIEW, choices=status_choices)
     reason = models.CharField(max_length=128, default='')
-    belong = models.ForeignKey(User)
+    belong = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __unicode__(self):
+        return '{0} 提现 {1} 状态: {2} 时间: {3}'.format(self.belong.name, self.cash, self.status, self.create_time)
+
+    def __str__(self):
         return '{0} 提现 {1} 状态: {2} 时间: {3}'.format(self.belong.name, self.cash, self.status, self.create_time)
 
 
@@ -31,9 +34,12 @@ class ExchangeRecord(BaseModel):
     coin = models.IntegerField()
     cash = models.IntegerField()
     proportion = models.IntegerField(default=0)
-    belong = models.ForeignKey(User)
+    belong = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __unicode__(self):
+        return '{0}'.format(self.coin)
+
+    def __str__(self):
         return '{0}'.format(self.coin)
 
 
@@ -49,7 +55,10 @@ class RedPacket(BaseModel):
     amount = models.IntegerField(default=0)
     reward_type = models.IntegerField(default=PACKET_TYPE_CASH, choices=type_choices)
     status = models.IntegerField(default=0)
-    belong = models.ForeignKey(User)
+    belong = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __unicode__(self):
+        return '{0}-{1} {2}'.format(self.belong.name, self.amount, self.create_time)
+
+    def __str__(self):
         return '{0}-{1} {2}'.format(self.belong.name, self.amount, self.create_time)

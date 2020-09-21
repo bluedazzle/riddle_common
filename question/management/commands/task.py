@@ -23,7 +23,7 @@ def song_init(execl, songs=0):
         lines = songs
     for line in range(lines):
         url = prefix + pingyin(infos[u'歌手名'][line]) + '_' + pingyin(infos[u'歌曲名'][line]) + '.m4a'
-        print url
+        print(url)
 
 
 
@@ -43,7 +43,7 @@ def question_init(execl, questions=0):
         try:
             resp = urllib2.urlopen(str(url))
         except:
-            print url
+            print(url)
             continue
         if resp.getcode() != 200:
             continue
@@ -52,7 +52,7 @@ def question_init(execl, questions=0):
     # questions2_list.sort(key=itemgetter(1))
     questions_list.sort(key=lambda x: (x[0], x[1]))
     # print questions_list
-    print "total: " + str(len(questions_list))
+    print("total: " + str(len(questions_list)))
     # for num in range(len(questions1_list)):
     #     print num, questions1_list[num][1]
 

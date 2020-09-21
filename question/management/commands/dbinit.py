@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import pandas as pd
 import pypinyin
-import urllib2
+import requests
 import random
 import string
 import numpy as np
@@ -24,22 +24,22 @@ class Command(BaseCommand):
             s += ''.join(i)
         return s
 
-    # def song_init(self, execl, songs=0):
-    #     model = Song
-    #     df = pd.read_excel(execl, sheet_name=u'songs', encoding='utf-8')
-    #     infos = df.ix[:, [u'歌手名', u'正确歌曲名']]
-    #     if songs == 0:
-    #         lines = len(infos[u'歌手名'])
-    #     else:
-    #         lines = songs
-    #     for line in range(lines):
-    #         url = prefix + self.pingyin(infos[u'歌手名'][line]) + '_' + self.pingyin(infos[u'正确歌曲名'][line]) + '.m4a'
-    #         print url
-    #         objs = model.objects.filter(resource_url=url).all()
-    #         if objs.exists():
-    #             continue
-    #         obj = model(singer=infos[u'歌手名'][line], name=infos[u'正确歌曲名'][line], resource_url=url)
-    #         obj.save()
+    def song_init(self, execl, songs=0):
+        model = Song
+        df = pd.read_excel(execl, sheet_name=u'songs', encoding='utf-8')
+        infos = df.ix[:, [u'歌手名', u'正确歌曲名']]
+        if songs == 0:
+            lines = len(infos[u'歌手名'])
+        else:
+            lines = songs
+        for line in range(lines):
+            url = prefix + self.pingyin(infos[u'歌手名'][line]) + '_' + self.pingyin(infos[u'正确歌曲名'][line]) + '.m4a'
+            print(url)
+            objs = model.objects.filter(resource_url=url).all()
+            if objs.exists():
+                continue
+            obj = model(singer=infos[u'歌手名'][line], name=infos[u'正确歌曲名'][line], resource_url=url)
+            obj.save()
 
     def question_init(self, execl, questions=0):
         model_question = Question
@@ -63,12 +63,12 @@ class Command(BaseCommand):
             url = prefix + self.pingyin(infos[u'歌手名'][line]).replace('，', '') + '_' + self.pingyin(
                 infos[u'正确歌曲名'][line]).replace('，', '') + '.m4a'
             try:
-                resp = urllib2.urlopen(str(url))
+                resp = requests.get(str(url), timeout=4)
             except:
                 continue
-            if resp.getcode() != 200:
+            if resp.status_code != 200:
                 continue
-            tag = string.join(
+            tag = ''.join(
                 random.sample(
                     'ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
                     32)).replace(" ", "")
@@ -98,7 +98,7 @@ class Command(BaseCommand):
         #         continue
         #     if resp.getcode() != 200:
         #         continue
-        #     tag = string.join(
+        #     tag = ''.join(
         #                 random.sample(
         #                     'ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
         #                     32)).replace(" ", "")
@@ -114,5 +114,5 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        # self.song_init(u'question/management/commands/songs.xlsx', 100)
+        self.song_init(u'question/management/commands/songs.xlsx', 100)
         self.question_init(u'question/management/commands/songs.xlsx', 908)

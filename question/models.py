@@ -16,6 +16,9 @@ class Song(BaseModel):
     def __unicode__(self):
         return '{0}'.format(self.name)
 
+    def __str__(self):
+        return '{0}'.format(self.name)
+
 
 class Question(BaseModel):
     title = models.CharField(max_length=100, default='')
@@ -30,3 +33,7 @@ class Question(BaseModel):
 
     def __unicode__(self):
         return '排序:{0}-{1}:{2}'.format(self.order_id, self.title, self.right_answer)
+
+    def __str__(self):
+        return '排序:{0}-{1}:{2}'.format(self.order_id, self.title, self.right_answer)
+

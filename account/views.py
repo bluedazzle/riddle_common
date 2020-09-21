@@ -53,11 +53,11 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
 
     @staticmethod
     def create_name():
-        name = '游客' + string.join(random.sample('1234567890', 7)).replace(" ", "")
+        name = '游客' + ''.join(random.sample('1234567890', 7)).replace(" ", "")
         return name
 
     def create_token(self):
-        token = string.join(
+        token = ''.join(
             random.sample('ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
                           self.count)).replace(" ", "")
         return token
@@ -118,7 +118,7 @@ class VerifyCodeView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, Fo
 
     @staticmethod
     def create_code():
-        return string.join(random.sample('1234567890', 4)).replace(" ", "")
+        return ''.join(random.sample('1234567890', 4)).replace(" ", "")
 
     @staticmethod
     def check_exist(phone):
@@ -170,7 +170,7 @@ class ValidateVerifyView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin
         if not verify:
             self.update_status(StatusCode.ERROR_NO_VERIFY)
             return self.render_to_response()
-        if unicode(verify) != code:
+        if str(verify) != code:
             self.update_status(StatusCode.ERROR_VERIFY)
             return self.render_to_response()
         self.user.phone = phone
