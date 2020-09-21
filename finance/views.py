@@ -67,6 +67,8 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
         allow = int(conf.get('allow_cash_right_number', DEFAULT_ALLOW_CASH_RIGHT_COUNT))
         obj = WithdrawConf.objects.all()[0]
         if cash == obj.new_withdraw_threshold:
+            if self.user.current_level < 11:
+                raise ValidationError('答题10道即可提现')
             if not self.user.new_withdraw:
                 self.user.new_withdraw = True
                 return True
@@ -164,7 +166,7 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
         reward_list = []
         amount = 0
         if self.user.cash >= DEFAULT_MAX_CASH_LIMIT:
-            amount = random.randint(1, 5)
+            amount = random.randint(1, 2)
         else:
             amount = random.randint(20, 500)
         rp = RedPacket()
