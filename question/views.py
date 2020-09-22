@@ -78,7 +78,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         # if self.user.current_step == round_count and self.user.cash < round_cash:
         #     cash = round_cash - self.user.cash
 
-        cash = int(max((round_cash-self.user.cash)/(round_count-self.user.current_step)*(5-4*self.user.current_step/round_count)*rand_num, 1))
+        cash = int(max((round_cash-self.user.cash)/(round_count-self.user.current_step)*(10-9*self.user.current_step/round_count)*rand_num, 1))
         # print("round_cash: " + str(round_cash) + " user_cash: " + str(self.user.cash) + " round_count: " + str(round_count) +
         #       " current_step: " + str(self.user.current_step) + " rand_num: " + str(rand_num) + " cash: " + str(cash))
 
@@ -97,7 +97,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         if obj.right_answer_id != aid:
             self.user.wrong_count += 1
             self.user.reward_count = 0
-            if self.user.current_level == 790:
+            if self.user.current_level == 1185:
                 self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
@@ -119,7 +119,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
             client_redis_riddle.set(REWARD_KEY.format(self.user.id), 1, 600)
         elif self.user.reward_count > DEFAULT_REWARD_COUNT:
             self.user.reward_count -= DEFAULT_REWARD_COUNT
-        if self.user.current_level == 790:
+        if self.user.current_level == 1185:
             self.user.current_level = 0
         self.user.current_level += 1
         self.user.save()
