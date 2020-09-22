@@ -86,6 +86,7 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
 2. 答对{0}道题
 
 当前已答对{1}道'''.format(DEFAULT_ALLOW_CASH_RIGHT_COUNT, self.user.right_count))
+        raise ValidationError('体现')
 
     @transaction.atomic()
     def form_valid(self, form):
@@ -98,22 +99,24 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
             self.update_status(StatusCode.ERROR_FORM)
             return self.render_to_response(extra={"error": e.message})
         super(CreateCashRecordView, self).form_valid(form)
-        resp = send_money_by_open_id(suid, self.user.wx_open_id, cash)
         cash_record = form.save()
         cash_record.belong = self.user
         cash_record.status = STATUS_REVIEW
-        cash_record.reason = '成功'
+        cash_record.reason = '审核中'
         cash_record.trade_no = suid
-        if resp.get('result_code') == 'SUCCESS':
-            self.user.cash -= cash
-            cash_record.status = STATUS_FINISH
-        else:
-            fail_message = resp.get('err_code_des', 'default_error')
-            cash_record.reason = fail_message
-            cash_record.status = STATUS_FAIL
-            obj = WithdrawConf.objects.all()[0]
-            if cash == obj.new_withdraw_threshold:
-                self.user.new_withdraw = False
+        if cash == 30:
+            resp = send_money_by_open_id(suid, self.user.wx_open_id, cash)
+            if resp.get('result_code') == 'SUCCESS':
+                self.user.cash -= cash
+                cash_record.reason = '成功'
+                cash_record.status = STATUS_FINISH
+            else:
+                fail_message = resp.get('err_code_des', 'default_error')
+                cash_record.reason = fail_message
+                cash_record.status = STATUS_FAIL
+                obj = WithdrawConf.objects.all()[0]
+                if cash == obj.new_withdraw_threshold:
+                    self.user.new_withdraw = False
         cash_record.save()
         self.user.save()
         return self.render_to_response(dict())
