@@ -10,7 +10,7 @@ from django.views.generic import DetailView
 
 from baseconf.models import PageConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
-from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS_THRESHOLD, DEFAULT_SONGS_TWO_COUNT, DEFAULT_SONGS_TWO_THRESHOLD
+from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS_THRESHOLD, DEFAULT_SONGS_TWO_COUNT, DEFAULT_SONGS_TWO_THRESHOLD, DEFAULT_SONGS_THREE_COUNT, DEFAULT_SONGS_THREE_THRESHOLD
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
@@ -88,8 +88,11 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         if self.user.current_level > DEFAULT_SONGS_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_TWO_THRESHOLD and \
                 self.user.songs_count % DEFAULT_SONGS_COUNT == 0:
             video = True
-        elif self.user.current_level > DEFAULT_SONGS_TWO_THRESHOLD and \
+        elif self.user.current_level > DEFAULT_SONGS_TWO_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_THREE_THRESHOLD and \
                 self.user.songs_count % DEFAULT_SONGS_TWO_COUNT == 0:
+            video = True
+        elif self.user.current_level > DEFAULT_SONGS_THREE_THRESHOLD and \
+                self.user.songs_count % DEFAULT_SONGS_THREE_COUNT == 0:
             video = True
         # elif self.user.songs_count > DEFAULT_SONGS_THRESHOLD and \
         #         (self.user.songs_count - DEFAULT_SONGS_THRESHOLD) > DEFAULT_SONGS_COUNT:
