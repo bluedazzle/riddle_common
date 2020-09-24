@@ -7,7 +7,7 @@ from account.models import BaseModel
 
 
 class AdEvent(BaseModel):
-    ad_type = models.IntegerField()
+    ad_type = models.CharField(max_length=9999)
     extra = models.CharField(max_length=1024, null=True, blank=True)
     user_id = models.IntegerField(default=0)
 
