@@ -6,7 +6,7 @@ from event.models import AdEvent
 
 
 class AdEventAdmin(admin.ModelAdmin):
-    list_display = ('user_id', 'ad_type', 'create_time', 'modify_time', 'extra')
+    list_display = ('user_id', 'ad_type', 'channel', 'create_time', 'modify_time', 'extra')
     search_fields = ('user_id', 'ad_type')
 
 admin.site.register(AdEvent, AdEventAdmin)

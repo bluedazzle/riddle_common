@@ -8,6 +8,7 @@ from account.models import BaseModel
 
 class AdEvent(BaseModel):
     ad_type = models.CharField(max_length=9999)
+    channel = models.CharField(default='PANGLE', max_length=1000)
     extra = models.CharField(max_length=1024, null=True, blank=True)
     user_id = models.IntegerField(default=0)
 
