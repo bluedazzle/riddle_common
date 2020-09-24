@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django import forms
 from django.core.exceptions import ValidationError
 
-from core.consts import EVENT_AD_STIMULATE_RIGHT, EVENT_AD_STIMULATE_WRONG, EVENT_AD_STIMULATE_FORCE, \
+from core.consts import EVENT_AD_STIMULATE_RIGHT, EVENT_AD_STIMULATE_WRONG, \
     EVENT_AD_CARD_RESDIA, EVENT_AD_CARD_USERCENTER, EVENT_AD_STIMULATE_FORCE_WRONG, EVENT_AD_STIMULATE_FORCE_RIGHT, \
     EVENT_AD_SPLASH
 from event.models import AdEvent
