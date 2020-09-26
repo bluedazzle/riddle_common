@@ -39,7 +39,7 @@ class User(BaseModel):
     device_id = models.CharField(max_length=128, default='', null=True, blank=True)
     phone = models.IntegerField(null=True, blank=True)
     wx_open_id = models.CharField(max_length=128, default='', null=True, blank=True)
-    invite_code = models.CharField(max_length=8, unique=True, default='', verbose_name='邀请码')
+    invite_code = models.CharField(max_length=8, unique=True, verbose_name='邀请码')
     inviter = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True)
     login_bonus = models.BooleanField(default=False, verbose_name='是否领取邀请登录红包')
     songs_bonus = models.BooleanField(default=False, verbose_name='是否领取邀请答题红包')
