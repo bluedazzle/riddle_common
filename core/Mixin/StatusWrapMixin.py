@@ -58,6 +58,10 @@ class StatusCode(ChoiceBase):
     ERROR_VERIFY = 2004
     ERROR_PHONE_EXIST = 2005
     ERROR_PHONE_BIND = 2006
+    ERROR_INVITE_KEY = 2007
+    ERROR_INVITE_BONUS = 2008
+    ERROR_BONUS_OVER = 2009
+    ERROR_BONUS_LESS = 2010
 
     ERROR_QUESTION_ORDER = 3001
     ERROR_STIMULATE_TAG = 3002
@@ -89,6 +93,10 @@ class StatusCode(ChoiceBase):
         (ERROR_PHONE_BIND, u'账号已绑定手机'),
         (ERROR_REPEAT_NEW_PACKET, u'新人红包不可重复领取'),
         (ERROR_REWARD_DENIED, u'无抽奖权限'),
+        (ERROR_INVITE_KEY, u'邀请码不存在'),
+        (ERROR_INVITE_BONUS, u'领取奖励参数错误'),
+        (ERROR_BONUS_OVER, u'奖励已领取'),
+        (ERROR_BONUS_LESS, u'尚未达到领取资格'),
     )
 
 

@@ -22,6 +22,7 @@ from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonR
 from account.models import User
 from core.sms import send_sms_by_phone
 from core.wx import get_access_token_by_code, get_user_info
+from core.consts import DEFAULT_SONGS_BONUS_THRESHOLD
 
 
 class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, DetailView):
@@ -48,6 +49,12 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
         user.token = self.create_token()
         user.name = self.create_name()
         user.expire_time = timezone.now() + datetime.timedelta(days=3)
+        invite_key = self.create_invite_key()
+        objs = self.model.objects.filter(invite_key=invite_key).all()
+        while objs.exists():
+            invite_key = self.create_invite_key()
+            objs = self.model.objects.filter(invite_key=invite_key).all()
+        user.invite_key = invite_key
         user.save()
         return self.render_to_response({'user': user})
 
@@ -61,6 +68,11 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
             random.sample('ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
                           self.count)).replace(" ", "")
         return token
+
+    def create_invite_key(self):
+        invite_key = string.join(
+            random.sample('1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba', 6)).replace(" ", "")
+        return invite_key
 
 
 class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
@@ -175,4 +187,54 @@ class ValidateVerifyView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin
             return self.render_to_response()
         self.user.phone = phone
         self.user.save()
+        return self.render_to_response()
+
+class UserShareView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = User
+
+    def get(self, request, *args, **kwargs):
+        objs = self.model.objects.filter(inviter=self.user).all()
+        return self.render_to_response({'invite_key': self.user.invite_key, 'song_threshold': DEFAULT_SONGS_BONUS_THRESHOLD, 'users': objs})
+
+
+class InviteKeyView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = User
+
+    def get(self, request, *args, **kwargs):
+        invite_key = request.GET.get('invite_key', '')
+        objs = self.model.objects.filter(invite_key=invite_key).all()
+        if objs.exists():
+            self.user.inviter = objs[0]
+            self.user.save()
+        else:
+            self.update_status(StatusCode.ERROR_INVITE_KEY)
+        return self.render_to_response()
+
+class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = User
+
+    def get(self, request, *args, **kwargs):
+        user_token = request.GET.get('user_token', '')
+        bonus = request.GET.get('bonus', '')
+        objs = self.model.objects.filter(token=user_token).all()
+        if objs.exists():
+            invite_user = objs[0]
+            if bonus == 'login':
+                if invite_user.login_bonus == True:
+                    self.update_status(StatusCode.ERROR_BONUS_OVER)
+                else:
+                    invite_user.login_bonus = True
+                    invite_user.save()
+            elif bonus == 'songs':
+                if invite_user.login_bonus == True:
+                    self.update_status(StatusCode.ERROR_BONUS_OVER)
+                elif invite_user.current_level < DEFAULT_SONGS_BONUS_THRESHOLD:
+                    self.update_status(StatusCode.ERROR_BONUS_LESS)
+                else:
+                    invite_user.songs_bonus = True
+                    invite_user.save()
+            else:
+                self.update_status(StatusCode.ERROR_INVITE_BONUS)
+        else:
+            self.update_status(StatusCode.ERROR_INVITE_BONUS)
         return self.render_to_response()
