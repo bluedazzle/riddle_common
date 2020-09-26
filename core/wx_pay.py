@@ -79,8 +79,9 @@ class WxPay(object):
     def to_xml(self, raw):
         s = ""
         for k, v in raw.items():
-            s += "<{0}>{1}</{0}>".format(k, self.to_utf8(v), k)
-        return "<xml>{0}</xml>".format(s)
+            s += "<{0}>{1}</{0}>".format(k, v, k)
+        xml = "<xml>{0}</xml>".format(s)
+        return xml.encode('utf-8')
 
     def fetch(self, url, data):
         req = urllib.request.Request(url, data=self.to_xml(data))
@@ -95,7 +96,6 @@ class WxPay(object):
             return re_info
 
     def fetch_with_ssl(self, url, data, api_client_cert_path, api_client_key_path):
-        print(self.to_xml(data))
         req = requests.post(url, data=self.to_xml(data),
                             cert=(api_client_cert_path, api_client_key_path), verify=False)
         return self.to_dict(req.content)
@@ -385,8 +385,6 @@ class WxPay(object):
         data.setdefault("nonce_str", self.nonce_str())
         data['check_name'] = 'FORCE_CHECK' if data['check_name'] else 'NO_CHECK'
         data.setdefault("sign", self.sign(data))
-        print(data)
-        data['partner_trade_no'] = '110'
         raw = self.fetch_with_ssl(url, data, api_cert_path, api_key_path)
         if raw["return_code"] == "FAIL":
             raise WxPayError(raw["return_msg"])
