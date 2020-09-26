@@ -49,12 +49,12 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
         user.token = self.create_token()
         user.name = self.create_name()
         user.expire_time = timezone.now() + datetime.timedelta(days=3)
-        invite_key = self.create_invite_key()
-        objs = self.model.objects.filter(invite_key=invite_key).all()
+        invite_code = self.create_invite_code()
+        objs = self.model.objects.filter(invite_code=invite_code).all()
         while objs.exists():
-            invite_key = self.create_invite_key()
-            objs = self.model.objects.filter(invite_key=invite_key).all()
-        user.invite_key = invite_key
+            invite_code = self.create_invite_code()
+            objs = self.model.objects.filter(invite_code=invite_code).all()
+        user.invite_code = invite_code
         user.save()
         return self.render_to_response({'user': user})
 
@@ -69,10 +69,10 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
                           self.count)).replace(" ", "")
         return token
 
-    def create_invite_key(self):
-        invite_key = string.join(
+    def create_invite_code(self):
+        invite_code = string.join(
             random.sample('1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba', 6)).replace(" ", "")
-        return invite_key
+        return invite_code
 
 
 class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
@@ -200,7 +200,7 @@ class UserShareView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin,
 
     def get_context_data(self, **kwargs):
         context = super(UserShareView, self).get_context_data(**kwargs)
-        context['invite_key'] = self.user.invite_key
+        context['invite_code'] = self.user.invite_code
         context['song_threshold'] = DEFAULT_SONGS_BONUS_THRESHOLD
         return context
 
@@ -212,10 +212,10 @@ class InviteKeyView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
         if self.user.inviter:
             self.update_status(StatusCode.ERROR_INVITE_EXIST)
             return self.render_to_response()
-        invite_key = request.GET.get('invite_key', '')
-        objs = self.model.objects.filter(invite_key=invite_key).all()
+        invite_code = request.GET.get('invite_code', '')
+        objs = self.model.objects.filter(invite_code=invite_code).all()
         if not objs.exists():
-            self.update_status(StatusCode.ERROR_INVITE_KEY)
+            self.update_status(StatusCode.ERROR_INVITE_CODE)
             return self.render_to_response()
         self.user.inviter = objs[0]
         self.user.save()
