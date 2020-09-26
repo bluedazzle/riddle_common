@@ -229,24 +229,22 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
         uid = request.GET.get('uid', '')
         bonus = request.GET.get('bonus', '')
         objs = self.model.objects.filter(id=uid).all()
-        if objs.exists():
-            invite_user = objs[0]
-            if bonus == 'login':
-                if invite_user.login_bonus:
-                    self.update_status(StatusCode.ERROR_BONUS_OVER)
-                else:
-                    invite_user.login_bonus = True
-                    invite_user.save()
-            elif bonus == 'songs':
-                if invite_user.login_bonus:
-                    self.update_status(StatusCode.ERROR_BONUS_OVER)
-                elif invite_user.current_level < DEFAULT_SONGS_BONUS_THRESHOLD:
-                    self.update_status(StatusCode.ERROR_BONUS_LESS)
-                else:
-                    invite_user.songs_bonus = True
-                    invite_user.save()
-            else:
-                self.update_status(StatusCode.ERROR_INVITE_BONUS)
-        else:
+        if not objs.exists() or (bonus != 'login' and bonus != 'songs'):
             self.update_status(StatusCode.ERROR_INVITE_BONUS)
+            return self.render_to_response()
+        invite_user = objs[0]
+        if bonus == 'login':
+            if invite_user.login_bonus:
+                self.update_status(StatusCode.ERROR_BONUS_OVER)
+            else:
+                invite_user.login_bonus = True
+                invite_user.save()
+        if bonus == 'songs':
+            if invite_user.songs_bonus:
+                self.update_status(StatusCode.ERROR_BONUS_OVER)
+            elif invite_user.current_level < DEFAULT_SONGS_BONUS_THRESHOLD:
+                self.update_status(StatusCode.ERROR_BONUS_LESS)
+            else:
+                invite_user.songs_bonus = True
+                invite_user.save()
         return self.render_to_response()
