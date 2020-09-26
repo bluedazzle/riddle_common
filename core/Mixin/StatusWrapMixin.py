@@ -62,6 +62,7 @@ class StatusCode(ChoiceBase):
     ERROR_INVITE_BONUS = 2008
     ERROR_BONUS_OVER = 2009
     ERROR_BONUS_LESS = 2010
+    ERROR_INVITE_EXIST = 2011
 
     ERROR_QUESTION_ORDER = 3001
     ERROR_STIMULATE_TAG = 3002
@@ -97,6 +98,7 @@ class StatusCode(ChoiceBase):
         (ERROR_INVITE_BONUS, u'领取奖励参数错误'),
         (ERROR_BONUS_OVER, u'奖励已领取'),
         (ERROR_BONUS_LESS, u'尚未达到领取资格'),
+        (ERROR_INVITE_EXIST, u'邀请人已存在'),
     )
 
 
