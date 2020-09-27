@@ -61,6 +61,7 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
     conf = {}
 
     def valid_withdraw(self, cash):
+        self.conf = get_global_conf()
         if not self.user.wx_open_id:
             raise ValidationError('请绑定微信后提现')
         conf = get_global_conf()
@@ -85,7 +86,7 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
 1. 通过答题参与抽奖
 2. 答对{0}道题
 
-当前已答对{1}道'''.format(DEFAULT_ALLOW_CASH_RIGHT_COUNT, self.user.right_count))
+当前已答对{1}道'''.format(self.conf.get('allow_cash_right_number', DEFAULT_ALLOW_CASH_RIGHT_COUNT), self.user.right_count))
         raise ValidationError('体现')
 
     @transaction.atomic()
