@@ -185,20 +185,20 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
         token = info['token']
         if not self.check_token_result(token):
             return JsonResponse({'isValid': False})
-        qid = info['question_id']
-        objs = self.model.objects.filter(id=qid).all()
-        if objs.exists():
-            obj = objs[0]
-        if not obj:
-            self.update_status(StatusCode.ERROR_QUESTION_NONE)
-            return JsonResponse({'isValid': False})
+        # qid = info['question_id']
+        # objs = self.model.objects.filter(id=qid).all()
+        # if objs.exists():
+        #     obj = objs[0]
+        # if not obj:
+        #     self.update_status(StatusCode.ERROR_QUESTION_NONE)
+        #     return JsonResponse({'isValid': False})
         # if self.user.current_level != obj.order_id:
         #     self.update_status(StatusCode.ERROR_QUESTION_ORDER)
         #     return JsonResponse({'isValid': False})
-        tag = info['tag']
-        if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
-            self.update_status(StatusCode.ERROR_STIMULATE_TAG)
-            return JsonResponse({'isValid': False})
+        # tag = info['tag']
+        # if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
+        #     self.update_status(StatusCode.ERROR_STIMULATE_TAG)
+        #     return JsonResponse({'isValid': False})
         cash = client_redis_riddle.get(str(self.user.id) + 'cash')
         self.user.cash += int(cash)
         client_redis_riddle.delete(str(self.user.id) + 'tag')
