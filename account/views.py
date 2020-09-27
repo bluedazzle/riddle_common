@@ -105,10 +105,10 @@ class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVie
                 self.update_status(StatusCode.ERROR_PARAMETER)
                 return self.render_to_response()
             data = get_user_info(access_token, wx_open_id)
-            name = data.get('nickname').encode('raw_unicode_escape')
+            name = data.get('nickname')
             avatar = data.get('headimgurl')
-            province = data.get('province').encode('raw_unicode_escape')
-            city = data.get('city').encode('raw_unicode_escape')
+            province = data.get('province')
+            city = data.get('city')
             sex = data.get('sex')
             if not self.user:
                 self.update_status(StatusCode.ERROR_PERMISSION_DENIED)
