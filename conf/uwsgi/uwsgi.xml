@@ -2,7 +2,7 @@
     <socket>:8000</socket>
     <listen>100</listen>
     <master>true</master>
-    <processes>1</processes>
+    <processes>4</processes>
     <buffer-size>16384</buffer-size>
     <post-buffering>4096</post-buffering>
     <post-buffering-bufsize>16384</post-buffering-bufsize>
