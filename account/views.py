@@ -70,7 +70,7 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
         return token
 
     def create_invite_code(self):
-        invite_code = string.join(
+        invite_code = ''.join(
             random.sample('1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba', 6)).replace(" ", "")
         return invite_code
 
