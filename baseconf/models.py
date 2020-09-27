@@ -26,7 +26,10 @@ class GlobalConf(BaseModel):
     perfect_level = models.IntegerField(default=29897)
 
     def __unicode__(self):
-        return '{0}'.format(self.create_time)
+        return '全局配置'
+
+    def __str__(self):
+        return '全局配置'
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -45,6 +48,9 @@ class WithdrawConf(BaseModel):
     def __unicode__(self):
         return '提现配置'
 
+    def __str__(self):
+        return '提现配置'
+
 
 class PageConf(BaseModel):
     privacy_url = models.URLField(verbose_name='隐私协议', null=True, blank=True)
@@ -52,4 +58,7 @@ class PageConf(BaseModel):
     rewards_url = models.URLField(verbose_name='抽奖地址', null=True, blank=True)
 
     def __unicode__(self):
+        return '页面地址配置'
+
+    def __str__(self):
         return '页面地址配置'

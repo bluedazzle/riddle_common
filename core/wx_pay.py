@@ -3,7 +3,7 @@ import hashlib
 import random
 import string
 import time
-import urllib2
+import urllib
 
 import requests
 
@@ -25,7 +25,7 @@ class WxPayError(Exception):
 
 class WxPay(object):
     def __init__(self, wx_app_id, wx_mch_id, wx_mch_key, wx_notify_url):
-        self.opener = urllib2.build_opener(urllib2.HTTPSHandler())
+        self.opener = urllib.request.build_opener(urllib.request.HTTPSHandler())
         self.WX_APP_ID = wx_app_id
         self.WX_MCH_ID = wx_mch_id
         self.WX_MCH_KEY = wx_mch_key
@@ -42,7 +42,7 @@ class WxPay(object):
 
     @staticmethod
     def to_utf8(raw):
-        return raw.encode("utf-8") if isinstance(raw, unicode) else raw
+        return raw.encode("utf-8") if isinstance(raw, str) else raw
 
     @staticmethod
     def to_dict(content):
@@ -78,15 +78,16 @@ class WxPay(object):
 
     def to_xml(self, raw):
         s = ""
-        for k, v in raw.iteritems():
-            s += "<{0}>{1}</{0}>".format(k, self.to_utf8(v), k)
-        return "<xml>{0}</xml>".format(s)
+        for k, v in raw.items():
+            s += "<{0}>{1}</{0}>".format(k, v, k)
+        xml = "<xml>{0}</xml>".format(s)
+        return xml.encode('utf-8')
 
     def fetch(self, url, data):
-        req = urllib2.Request(url, data=self.to_xml(data))
+        req = urllib.request.Request(url, data=self.to_xml(data))
         try:
             resp = self.opener.open(req, timeout=20)
-        except urllib2.HTTPError, e:
+        except urllib.request.HTTPError as e:
             resp = e
         re_info = resp.read()
         try:
@@ -96,7 +97,7 @@ class WxPay(object):
 
     def fetch_with_ssl(self, url, data, api_client_cert_path, api_client_key_path):
         req = requests.post(url, data=self.to_xml(data),
-                            cert=(api_client_cert_path, api_client_key_path))
+                            cert=(api_client_cert_path, api_client_key_path), verify=False)
         return self.to_dict(req.content)
 
     def reply(self, msg, ok=True):
@@ -376,16 +377,14 @@ class WxPay(object):
             raise WxPayError(u"企业付款申请接口中，缺少必填参数desc")
         if "spbill_create_ip" not in data:
             raise WxPayError(u"企业付款申请接口中，缺少必填参数spbill_create_ip")
+        if "partner_trade_no" not in data:
+            raise WxPayError(u"企业付款申请接口中，缺少必填参数partner_trade_no")
 
         data.setdefault("mch_appid", self.WX_APP_ID)
         data.setdefault("mchid", self.WX_MCH_ID)
         data.setdefault("nonce_str", self.nonce_str())
-        data.setdefault("partner_trade_no", u'{0}{1}{2}'.format(
-            self.WX_MCH_ID, time.strftime('%Y%m%d', time.localtime(time.time())), self.random_num(10)
-        ))
         data['check_name'] = 'FORCE_CHECK' if data['check_name'] else 'NO_CHECK'
         data.setdefault("sign", self.sign(data))
-
         raw = self.fetch_with_ssl(url, data, api_cert_path, api_key_path)
         if raw["return_code"] == "FAIL":
             raise WxPayError(raw["return_msg"])

@@ -1,9 +1,9 @@
-FROM python:2.7.13
+FROM python:3.6.0
 
 WORKDIR /site
 
 ADD requirements.txt .
-RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple && mkdir /logs/
+RUN pip3 install -r requirements.txt -i http://pypi.douban.com/simple --trusted-host pypi.douban.com && mkdir /logs/
 
 ADD . .
 

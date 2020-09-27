@@ -119,7 +119,7 @@ class FormJsonResponseMixin(JsonResponseMixin):
         form = context.get('form', None)
         if form:
             for itm in form.fields:
-                f_dict = {'field': unicode(itm)}
+                f_dict = {'field': str(itm)}
                 form_list.append(f_dict)
         context_dict = super(FormJsonResponseMixin, self).context_serialize(context, *args, **kwargs)
         context_dict['form'] = form_list

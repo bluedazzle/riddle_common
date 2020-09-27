@@ -70,7 +70,7 @@ def get_access_token_by_code(code):
     try:
         resp = requests.get(url, timeout=3)
         json_data = resp.json()
-        print json_data
+        # print json_data
         if not json_data.get('errcode'):
             return json_data
         raise ValueError(json_data.get('errmsg'))
@@ -83,7 +83,7 @@ def get_user_info(access_token, open_id):
     try:
         resp = requests.get(url, timeout=3)
         json_data = resp.json()
-        print json_data
+        # print json_data
         if not json_data.get('errcode'):
             return json_data
         raise ValueError(json_data.get('errmsg'))
@@ -92,7 +92,7 @@ def get_user_info(access_token, open_id):
 
 
 def send_money_by_open_id(partner_trade_no, open_id, amount=30):
-    from wx_pay import WxPay, WxPayError
+    from core.wx_pay import WxPay, WxPayError
     pay = WxPay(
         wx_app_id=APP_KEY,  # 微信平台appid
         wx_mch_id=WX_MCH_ID,  # 微信支付商户号
@@ -107,7 +107,7 @@ def send_money_by_open_id(partner_trade_no, open_id, amount=30):
                                   spbill_create_ip=get_local_ip(),
                                   api_cert_path='/cert/apiclient_cert.pem',
                                   api_key_path='/cert/apiclient_key.pem')
-    print resp
+    print(resp)
     return resp
     # {'return_code': 'SUCCESS', 'mch_appid': 'wx0a70602b8b19b1e5', 'mchid': '1602484372', 'err_code_des': u'余额不足',
     #  'return_msg': u'支付失败', 'result_code': 'FAIL', 'err_code': 'NOTENOUGH'}

@@ -64,7 +64,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
             # print self.user.current_level, obj.order_id
             self.update_status(StatusCode.ERROR_QUESTION_ORDER)
             return self.render_to_response()
-        tag = string.join(
+        tag = ''.join(
             random.sample('ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
                           self.count)).replace(" ", "")
         client_redis_riddle.set(str(self.user.id) + 'tag', tag)

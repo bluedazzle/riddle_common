@@ -9,6 +9,6 @@ class JsonRequestMixin(object):
         try:
             json_data = json.loads(request.body)
             setattr(request, 'POST', json_data)
-        except Exception, e:
+        except Exception as e:
             pass
         return super(JsonRequestMixin, self).dispatch(request, *args, **kwargs)

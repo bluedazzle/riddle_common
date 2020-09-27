@@ -46,3 +46,6 @@ class User(BaseModel):
 
     def __unicode__(self):
         return '{0}'.format(self.name)
+
+    def __str__(self):
+        return '{0}'.format(self.name)
