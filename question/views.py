@@ -10,7 +10,7 @@ from django.views.generic import DetailView
 
 from baseconf.models import PageConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
-from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS_THRESHOLD, DEFAULT_SONGS_TWO_COUNT, DEFAULT_SONGS_TWO_THRESHOLD
+from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS_THRESHOLD, DEFAULT_SONGS_TWO_COUNT, DEFAULT_SONGS_TWO_THRESHOLD, DEFAULT_SONGS_THREE_COUNT, DEFAULT_SONGS_THREE_THRESHOLD
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
@@ -55,8 +55,8 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         self.conf = get_global_conf()
         round_cash = self.conf.get('round_cash', 30000)
         round_count = self.conf.get('round_count', 1000)
-        low_range = self.conf.get('low_range', 0.5)
-        high_range = self.conf.get('high_range', 1.5)
+        low_range = self.conf.get('low_range', 0.9)
+        high_range = self.conf.get('high_range', 1.0)
         const_num = self.conf.get('const_num', 0)
         obj = self.get_object()
         aid = int(request.GET.get('answer', 0))
@@ -78,7 +78,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         # if self.user.current_step == round_count and self.user.cash < round_cash:
         #     cash = round_cash - self.user.cash
 
-        cash = int(max((round_cash-self.user.cash)/(round_count-self.user.current_step)*(5-4*self.user.current_step/round_count)*rand_num, 1))
+        cash = int(max((round_cash-self.user.cash)/(round_count-self.user.current_step)*(20-19*self.user.current_step/round_count)*rand_num, 1))
         # print("round_cash: " + str(round_cash) + " user_cash: " + str(self.user.cash) + " round_count: " + str(round_count) +
         #       " current_step: " + str(self.user.current_step) + " rand_num: " + str(rand_num) + " cash: " + str(cash))
 
@@ -88,8 +88,11 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         if self.user.current_level > DEFAULT_SONGS_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_TWO_THRESHOLD and \
                 self.user.songs_count % DEFAULT_SONGS_COUNT == 0:
             video = True
-        elif self.user.current_level > DEFAULT_SONGS_TWO_THRESHOLD and \
+        elif self.user.current_level > DEFAULT_SONGS_TWO_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_THREE_THRESHOLD and \
                 self.user.songs_count % DEFAULT_SONGS_TWO_COUNT == 0:
+            video = True
+        elif self.user.current_level > DEFAULT_SONGS_THREE_THRESHOLD and \
+                self.user.songs_count % DEFAULT_SONGS_THREE_COUNT == 0:
             video = True
         # elif self.user.songs_count > DEFAULT_SONGS_THRESHOLD and \
         #         (self.user.songs_count - DEFAULT_SONGS_THRESHOLD) > DEFAULT_SONGS_COUNT:
@@ -97,7 +100,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         if obj.right_answer_id != aid:
             self.user.wrong_count += 1
             self.user.reward_count = 0
-            if self.user.current_level == 790:
+            if self.user.current_level == 1185:
                 self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
@@ -119,7 +122,7 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
             client_redis_riddle.set(REWARD_KEY.format(self.user.id), 1, 600)
         elif self.user.reward_count > DEFAULT_REWARD_COUNT:
             self.user.reward_count -= DEFAULT_REWARD_COUNT
-        if self.user.current_level == 790:
+        if self.user.current_level == 1185:
             self.user.current_level = 0
         self.user.current_level += 1
         self.user.save()
@@ -182,20 +185,20 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
         token = info['token']
         if not self.check_token_result(token):
             return JsonResponse({'isValid': False})
-        qid = info['question_id']
-        objs = self.model.objects.filter(id=qid).all()
-        if objs.exists():
-            obj = objs[0]
-        if not obj:
-            self.update_status(StatusCode.ERROR_QUESTION_NONE)
-            return JsonResponse({'isValid': False})
+        # qid = info['question_id']
+        # objs = self.model.objects.filter(id=qid).all()
+        # if objs.exists():
+        #     obj = objs[0]
+        # if not obj:
+        #     self.update_status(StatusCode.ERROR_QUESTION_NONE)
+        #     return JsonResponse({'isValid': False})
         # if self.user.current_level != obj.order_id:
         #     self.update_status(StatusCode.ERROR_QUESTION_ORDER)
         #     return JsonResponse({'isValid': False})
-        tag = info['tag']
-        if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
-            self.update_status(StatusCode.ERROR_STIMULATE_TAG)
-            return JsonResponse({'isValid': False})
+        # tag = info['tag']
+        # if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
+        #     self.update_status(StatusCode.ERROR_STIMULATE_TAG)
+        #     return JsonResponse({'isValid': False})
         cash = client_redis_riddle.get(str(self.user.id) + 'cash')
         self.user.cash += int(cash)
         client_redis_riddle.delete(str(self.user.id) + 'tag')

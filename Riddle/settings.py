@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'question',
     'finance',
     'baseconf',
+    'event',
 ]
 
 MIDDLEWARE = [

@@ -78,41 +78,43 @@ class Command(BaseCommand):
 
         for num in range(len(questions_list)):
             questions_song += 1
-            obj_question = model_question(title=u'猜猜这首歌叫什么', order_id=num+1, question_type=1, difficult=questions_list[num][0],
-                        right_answer_id=1, right_answer=questions_list[num][2],
-                        wrong_answer_id=2, wrong_answer=questions_list[num][3], resource_url=questions_list[num][4])
+            obj_question = model_question(title=u'猜猜这首歌叫什么', order_id=num + 1, question_type=1,
+                                          difficult=questions_list[num][0],
+                                          right_answer_id=1, right_answer=questions_list[num][2],
+                                          wrong_answer_id=2, wrong_answer=questions_list[num][3],
+                                          resource_url=questions_list[num][4])
             obj_question.save()
-            obj_song = model_song(singer=questions_list[num][1], name=questions_list[num][2], resource_url=questions_list[num][4])
+            obj_song = model_song(singer=questions_list[num][1], name=questions_list[num][2],
+                                  resource_url=questions_list[num][4])
             obj_song.save()
 
-        # init the singer questions
-        # for line in range(lines):
-        #     if pd.isna(infos[u'是否完成'][line]) or pd.isna(infos[u'歌手名'][line]) or pd.isna(infos[u'正确歌曲名'][line]) \
-        #             or pd.isna(infos[u'容易度'][line]) or pd.isna(infos[u'错误歌手名'][line]):
-        #         continue
-        #     url = prefix + self.pingyin(infos[u'歌手名'][line]).replace('，', '') + '_' + self.pingyin(
-        #         infos[u'正确歌曲名'][line]).replace('，', '') + '.m4a'
-        #     try:
-        #         resp = urllib2.urlopen(str(url))
-        #     except:
-        #         continue
-        #     if resp.getcode() != 200:
-        #         continue
-        #     tag = ''.join(
-        #                 random.sample(
-        #                     'ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
-        #                     32)).replace(" ", "")
-        #     questions_singer_list.append((int(infos[u'容易度'][line]), infos[u'歌手名'][line],
-        #                            infos[u'正确歌曲名'][line], infos[u'错误歌手名'][line], url, tag))
-        # questions_singer_list.sort(key=lambda x: (x[0], x[5]))
-        #
-        # for num in range(len(questions_singer_list)):
-        #     obj_question = model_question(title=u'猜猜歌手叫什么', order_id=num+questions_song+1, question_type=2, difficult=questions_singer_list[num][0],
-        #                 right_answer_id=1, right_answer=questions_singer_list[num][1],
-        #                 wrong_answer_id=2, wrong_answer=questions_singer_list[num][3], resource_url=questions_singer_list[num][4])
-        #     obj_question.save()
-
+            # init the singer questions
+            # for line in range(lines):
+            #     if pd.isna(infos[u'是否完成'][line]) or pd.isna(infos[u'歌手名'][line]) or pd.isna(infos[u'正确歌曲名'][line]) \
+            #             or pd.isna(infos[u'容易度'][line]) or pd.isna(infos[u'错误歌手名'][line]):
+            #         continue
+            #     url = prefix + self.pingyin(infos[u'歌手名'][line]).replace('，', '') + '_' + self.pingyin(
+            #         infos[u'正确歌曲名'][line]).replace('，', '') + '.m4a'
+            #     try:
+            #         resp = urllib2.urlopen(str(url))
+            #     except:
+            #         continue
+            #     if resp.getcode() != 200:
+            #         continue
+            #     tag = ''.join(
+            #                 random.sample(
+            #                     'ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
+            #                     32)).replace(" ", "")
+            #     questions_singer_list.append((int(infos[u'容易度'][line]), infos[u'歌手名'][line],
+            #                            infos[u'正确歌曲名'][line], infos[u'错误歌手名'][line], url, tag))
+            # questions_singer_list.sort(key=lambda x: (x[0], x[5]))
+            #
+            # for num in range(len(questions_singer_list)):
+            #     obj_question = model_question(title=u'猜猜歌手叫什么', order_id=num+questions_song+1, question_type=2, difficult=questions_singer_list[num][0],
+            #                 right_answer_id=1, right_answer=questions_singer_list[num][1],
+            #                 wrong_answer_id=2, wrong_answer=questions_singer_list[num][3], resource_url=questions_singer_list[num][4])
+            #     obj_question.save()
 
     def handle(self, *args, **options):
-        self.song_init(u'question/management/commands/songs.xlsx', 100)
+        # self.song_init(u'question/management/commands/songs.xlsx', 100)
         self.question_init(u'question/management/commands/songs.xlsx', 908)

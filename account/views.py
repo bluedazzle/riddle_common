@@ -12,7 +12,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.utils import timezone
-from django.views.generic import CreateView
+from django.views.generic import CreateView, ListView
 from django.views.generic import DetailView
 from django.views.generic import FormView
 
@@ -22,6 +22,7 @@ from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonR
 from account.models import User
 from core.sms import send_sms_by_phone
 from core.wx import get_access_token_by_code, get_user_info
+from core.consts import DEFAULT_SONGS_BONUS_THRESHOLD
 
 
 class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, DetailView):
@@ -48,6 +49,12 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
         user.token = self.create_token()
         user.name = self.create_name()
         user.expire_time = timezone.now() + datetime.timedelta(days=3)
+        invite_code = self.create_invite_code()
+        objs = self.model.objects.filter(invite_code=invite_code).all()
+        while objs.exists():
+            invite_code = self.create_invite_code()
+            objs = self.model.objects.filter(invite_code=invite_code).all()
+        user.invite_code = invite_code
         user.save()
         return self.render_to_response({'user': user})
 
@@ -62,12 +69,18 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
                           self.count)).replace(" ", "")
         return token
 
+    def create_invite_code(self):
+        invite_code = string.join(
+            random.sample('1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba', 6)).replace(" ", "")
+        return invite_code
+
 
 class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     force_check = False
     model = User
     slug_field = 'wx_open_id'
     datetime_type = 'timestamp'
+
     # http_method_names = ['post']
 
     def get(self, request, *args, **kwargs):
@@ -175,4 +188,63 @@ class ValidateVerifyView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin
             return self.render_to_response()
         self.user.phone = phone
         self.user.save()
+        return self.render_to_response()
+
+
+class UserShareView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, ListView):
+    model = User
+
+    def get_queryset(self):
+        objs = self.model.objects.filter(inviter=self.user).all()
+        return objs
+
+    def get_context_data(self, **kwargs):
+        context = super(UserShareView, self).get_context_data(**kwargs)
+        context['invite_code'] = self.user.invite_code
+        context['song_threshold'] = DEFAULT_SONGS_BONUS_THRESHOLD
+        return context
+
+
+class InviteKeyView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = User
+
+    def get(self, request, *args, **kwargs):
+        if self.user.inviter:
+            self.update_status(StatusCode.ERROR_INVITE_EXIST)
+            return self.render_to_response()
+        invite_code = request.GET.get('invite_code', '')
+        objs = self.model.objects.filter(invite_code=invite_code).all()
+        if not objs.exists():
+            self.update_status(StatusCode.ERROR_INVITE_CODE)
+            return self.render_to_response()
+        self.user.inviter = objs[0]
+        self.user.save()
+        return self.render_to_response()
+
+
+class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = User
+
+    def get(self, request, *args, **kwargs):
+        uid = request.GET.get('uid', '')
+        bonus = request.GET.get('bonus', '')
+        objs = self.model.objects.filter(id=uid).all()
+        if not objs.exists() or (bonus != 'login' and bonus != 'songs'):
+            self.update_status(StatusCode.ERROR_INVITE_BONUS)
+            return self.render_to_response()
+        invite_user = objs[0]
+        if bonus == 'login':
+            if invite_user.login_bonus:
+                self.update_status(StatusCode.ERROR_BONUS_OVER)
+            else:
+                invite_user.login_bonus = True
+                invite_user.save()
+        if bonus == 'songs':
+            if invite_user.songs_bonus:
+                self.update_status(StatusCode.ERROR_BONUS_OVER)
+            elif invite_user.current_level < DEFAULT_SONGS_BONUS_THRESHOLD:
+                self.update_status(StatusCode.ERROR_BONUS_LESS)
+            else:
+                invite_user.songs_bonus = True
+                invite_user.save()
         return self.render_to_response()
