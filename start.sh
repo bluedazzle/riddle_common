@@ -1,4 +1,4 @@
 #!/bin/bash
 python manage.py makemigrations
-python manage.py migrate --fake-initial
+python manage.py migrate
 uwsgi conf/uwsgi/uwsgi.xml
