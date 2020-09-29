@@ -6,3 +6,4 @@ from baseconf.models import *
 admin.site.register(GlobalConf)
 admin.site.register(PageConf)
 admin.site.register(WithdrawConf)
+admin.site.register(ABTest)

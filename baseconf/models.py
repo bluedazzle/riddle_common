@@ -1,6 +1,8 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
+
+from django.core.exceptions import ValidationError
 from django.db import models
 from account.models import BaseModel
 
@@ -8,7 +10,8 @@ from account.models import BaseModel
 from core.cache import set_global_config_to_cache
 from core.consts import DEFAULT_ALLOW_CASH_COUNT, DEFAULT_COIN_CASH_PROPORTION, TOTAL_LEVEL, ROUND_CASH, ROUND_COUNT, \
     DEFAULT_NEW_PACKET, DEFAULT_NEW_WITHDRAW_THRESHOLD, DEFAULT_FIRST_WITHDRAW_THRESHOLD, \
-    DEFAULT_SECOND_WITHDRAW_THRESHOLD, DEFAULT_THIRD_WITHDRAW_THRESHOLD, DEFAULT_ALLOW_CASH_RIGHT_COUNT
+    DEFAULT_SECOND_WITHDRAW_THRESHOLD, DEFAULT_THIRD_WITHDRAW_THRESHOLD, DEFAULT_ALLOW_CASH_RIGHT_COUNT, STATUS_FAIL, \
+    STATUS_DESTROY, STATUS_FINISH, STATUS_ENABLE, STATUS_PAUSE
 from core.dss.Serializer import serializer
 
 
@@ -62,3 +65,72 @@ class PageConf(BaseModel):
 
     def __str__(self):
         return '页面地址配置'
+
+
+class ABTest(BaseModel):
+    status_choices = (
+        (STATUS_ENABLE, '启用'),
+        (STATUS_PAUSE, '暂停'),
+        (STATUS_DESTROY, '终止'),
+    )
+    name = models.CharField(verbose_name='实验名称', default='实验组', max_length=100)
+    desc = models.TextField(verbose_name='实验描述', default='实验描述', null=True, blank=True, max_length=4096)
+    status = models.BooleanField(verbose_name='实验状态', default=STATUS_ENABLE, choices=status_choices)
+    # 11~110
+    traffic = models.IntegerField(verbose_name='本组实验共占用的流量百分比，实验对照组将均分此占比，请输入2~100的偶数)', default=10)
+    test_a_id = models.IntegerField(default=1, editable=False)
+    test_a_start_value = models.IntegerField(default=0, editable=False)
+    test_a_end_value = models.IntegerField(default=0, editable=False)
+    test_b_id = models.IntegerField(default=2, editable=False)
+    test_b_start_value = models.IntegerField(default=0, editable=False)
+    test_b_end_value = models.IntegerField(default=0, editable=False)
+
+    def clean(self):
+        errors = {}
+        try:
+            if self.traffic > 100:
+                raise ValidationError("实验流量占比不能 > 100%")
+            if self.traffic % 2 == 1:
+                raise ValidationError("实验流量无法均分")
+            objs = ABTest.objects.exclude(status=STATUS_DESTROY).order_by('-create_time').all()
+            cursor = 11
+            if objs.exists():
+                obj = objs[0]
+                cursor = obj.test_b_end_value + 1
+            if cursor + self.traffic > 110:
+                raise ValidationError('剩余实验流量不足新建本实验')
+            obj = ABTest.objects.filter(id=self.id).all()
+            ext = None
+            if obj.exists():
+                ext = obj[0]
+                if self.traffic != ext.traffic:
+                    raise ValidationError('流量占比无法修改')
+        except ValidationError as e:
+            errors['traffic'] = e.error_list
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        obj = ABTest.objects.filter(id=self.id).all()
+        if obj.exists():
+            return super(ABTest, self).save(force_insert=False, force_update=False, using=None,
+                                            update_fields=None)
+        objs = ABTest.objects.exclude(status=STATUS_DESTROY).order_by('-create_time').all()
+        cursor = 11
+        if objs.exists():
+            obj = objs[0]
+            cursor = obj.test_b_end_value + 1
+        step = self.traffic / 2 - 1
+        self.test_a_start_value = cursor
+        cursor += step
+        self.test_a_end_value = cursor
+        cursor += 1
+        self.test_b_start_value = cursor
+        cursor += step
+        self.test_b_end_value = cursor
+        return super(ABTest, self).save(force_insert=False, force_update=False, using=None,
+                                        update_fields=None)
+
+    def __str__(self):
+        return self.name

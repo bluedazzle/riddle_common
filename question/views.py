@@ -171,8 +171,8 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
         return True
 
     def parse_data(self, data):
-        import urlparse
-        resp = urlparse.unquote(data)
+        import urllib.parse
+        resp = urllib.parse.unquote(data)
         return resp
 
     def get(self, request, *args, **kwargs):
