@@ -23,6 +23,7 @@ from account.models import User
 from core.sms import send_sms_by_phone
 from core.wx import get_access_token_by_code, get_user_info
 from core.consts import DEFAULT_SONGS_BONUS_THRESHOLD
+from core.dss.Serializer import serializer
 
 
 class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, DetailView):
@@ -71,7 +72,7 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
 
     def create_invite_code(self):
         invite_code = ''.join(
-            random.sample('1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba', 6)).replace(" ", "")
+            random.sample('1234567890ZYXWVUTSRQPONMLKJIHGFEDCBAZYXWVUTSRQPONMLKJIHGFEDCBA', 8)).replace(" ", "")
         return invite_code
 
 
@@ -200,6 +201,7 @@ class UserShareView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin,
 
     def get_context_data(self, **kwargs):
         context = super(UserShareView, self).get_context_data(**kwargs)
+        context['user_list'] = serializer(context['user_list'], output_type='raw', include_attr=('avatar', 'cash', 'current_level', 'id', 'right_count', 'login_bonus', 'songs_bonus'))
         context['invite_code'] = self.user.invite_code
         context['song_threshold'] = DEFAULT_SONGS_BONUS_THRESHOLD
         return context
@@ -216,6 +218,9 @@ class InviteKeyView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
         objs = self.model.objects.filter(invite_code=invite_code).all()
         if not objs.exists():
             self.update_status(StatusCode.ERROR_INVITE_CODE)
+            return self.render_to_response()
+        if self.user.create_time <= objs[0].create_time:
+            self.update_status(StatusCode.ERROR_INVITER_CODE)
             return self.render_to_response()
         self.user.inviter = objs[0]
         self.user.save()

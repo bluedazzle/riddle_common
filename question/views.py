@@ -81,6 +81,8 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         cash = int(max((round_cash-self.user.cash)/(round_count-self.user.current_step)*(20-19*self.user.current_step/round_count)*rand_num, 1))
         # print("round_cash: " + str(round_cash) + " user_cash: " + str(self.user.cash) + " round_count: " + str(round_count) +
         #       " current_step: " + str(self.user.current_step) + " rand_num: " + str(rand_num) + " cash: " + str(cash))
+        if self.user.cash > 29500 and self.user.current_level < 500:
+            cash = 1
 
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
         video = False
