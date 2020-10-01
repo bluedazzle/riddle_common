@@ -13,7 +13,7 @@ class AdEventForm(forms.ModelForm):
 
     ad_type = forms.CharField(required=True, max_length=9999, error_messages=cash_messages)
     channel = forms.CharField(required=False, max_length=1000)
-    extra = forms.CharField(required=False, max_length=1024, default='')
+    extra = forms.CharField(required=False, max_length=1024)
 
     def save(self, commit=False):
         return super(AdEventForm, self).save(commit)
