@@ -201,7 +201,7 @@ class UserShareView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin,
 
     def get_context_data(self, **kwargs):
         context = super(UserShareView, self).get_context_data(**kwargs)
-        context['user_list'] = serializer(context['user_list'], output_type='raw', include_attr=('avatar', 'cash', 'current_level', 'id', 'right_count', 'login_bonus', 'songs_bonus'))
+        context['user_list'] = serializer(context['user_list'], output_type='raw', include_attr=('name', 'avatar', 'cash', 'current_level', 'id', 'right_count', 'login_bonus', 'songs_bonus'))
         context['invite_code'] = self.user.invite_code
         context['song_threshold'] = DEFAULT_SONGS_BONUS_THRESHOLD
         return context

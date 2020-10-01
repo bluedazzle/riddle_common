@@ -100,7 +100,7 @@ class StatusCode(ChoiceBase):
         (ERROR_BONUS_OVER, u'奖励已领取'),
         (ERROR_BONUS_LESS, u'尚未达到领取资格'),
         (ERROR_INVITE_EXIST, u'邀请人已存在'),
-        (ERROR_INVITER_CODE, u'邀请人后存在'),
+        (ERROR_INVITER_CODE, u'邀请人后申请账户'),
     )
 
 
