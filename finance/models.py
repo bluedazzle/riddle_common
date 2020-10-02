@@ -18,6 +18,7 @@ class CashRecord(BaseModel):
     )
 
     trade_no = models.CharField(max_length=128, unique=True, default='')
+    cash_type = models.CharField(default='新人提现', max_length=10)
     cash = models.IntegerField()
     status = models.IntegerField(default=STATUS_REVIEW, choices=status_choices)
     reason = models.CharField(max_length=128, default='')

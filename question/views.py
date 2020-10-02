@@ -10,7 +10,8 @@ from django.views.generic import DetailView
 
 from baseconf.models import PageConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
-from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS_THRESHOLD, DEFAULT_SONGS_TWO_COUNT, DEFAULT_SONGS_TWO_THRESHOLD, DEFAULT_SONGS_THREE_COUNT, DEFAULT_SONGS_THREE_THRESHOLD
+from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS_THRESHOLD, DEFAULT_SONGS_TWO_COUNT, DEFAULT_SONGS_TWO_THRESHOLD, DEFAULT_SONGS_THREE_COUNT, DEFAULT_SONGS_THREE_THRESHOLD, \
+    NEW_VERSION_REWARD_COUNT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
@@ -52,6 +53,10 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
     conf = {}
 
     def get(self, request, *args, **kwargs):
+        reward_count = DEFAULT_REWARD_COUNT
+        version = int(request.GET.get('version', 0))
+        if version >= 20100301:
+            reward_count = NEW_VERSION_REWARD_COUNT
         self.conf = get_global_conf()
         round_cash = self.conf.get('round_cash', 30000)
         round_count = self.conf.get('round_count', 1000)
@@ -116,14 +121,14 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         self.user.reward_count += 1
         reward = False
         reward_url = ''
-        if self.user.reward_count == DEFAULT_REWARD_COUNT:
+        if self.user.reward_count == reward_count:
             obj = PageConf.objects.all()[0]
             reward = True
             reward_url = obj.rewards_url
             self.user.reward_count = 0
             client_redis_riddle.set(REWARD_KEY.format(self.user.id), 1, 600)
-        elif self.user.reward_count > DEFAULT_REWARD_COUNT:
-            self.user.reward_count -= DEFAULT_REWARD_COUNT
+        elif self.user.reward_count > reward_count:
+            self.user.reward_count -= reward_count
         if self.user.current_level == 1185:
             self.user.current_level = 0
         self.user.current_level += 1

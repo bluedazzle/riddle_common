@@ -7,6 +7,7 @@ import string
 import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django.http import Http404
 from django.shortcuts import render
 
@@ -21,9 +22,10 @@ from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from account.models import User
 from core.sms import send_sms_by_phone
-from core.wx import get_access_token_by_code, get_user_info
-from core.consts import DEFAULT_SONGS_BONUS_THRESHOLD
+from core.wx import get_access_token_by_code, get_user_info, send_money_by_open_id
+from core.consts import DEFAULT_SONGS_BONUS_THRESHOLD, STATUS_REVIEW, STATUS_FINISH, STATUS_FAIL
 from core.dss.Serializer import serializer
+from finance.models import CashRecord
 
 
 class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, DetailView):
@@ -230,6 +232,28 @@ class InviteKeyView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
 class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     model = User
 
+    def create_cash_record(self, cash=30):
+        uid = str(uuid.uuid1())
+        suid = ''.join(uid.split('-'))
+        cash_record = CashRecord()
+        cash_record.belong = self.user
+        cash_record.status = STATUS_REVIEW
+        cash_record.cash_type = '邀请注册红包提现'
+        cash_record.reason = '审核中'
+        cash_record.trade_no = suid
+        resp = send_money_by_open_id(suid, self.user.wx_open_id, cash)
+        result = False
+        if resp.get('result_code') == 'SUCCESS':
+            cash_record.reason = '成功'
+            cash_record.status = STATUS_FINISH
+            result = True
+        else:
+            fail_message = resp.get('err_code_des', 'default_error')
+            cash_record.reason = fail_message
+            cash_record.status = STATUS_FAIL
+        return cash_record, result
+
+    @transaction.atomic()
     def get(self, request, *args, **kwargs):
         uid = request.GET.get('uid', '')
         bonus = request.GET.get('bonus', '')
@@ -242,14 +266,26 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
             if invite_user.login_bonus:
                 self.update_status(StatusCode.ERROR_BONUS_OVER)
             else:
-                invite_user.login_bonus = True
-                invite_user.save()
+                cr, result = self.create_cash_record()
+                if not result:
+                    self.update_status(StatusCode.ERROR_DATA)
+                    self.message = cr.reason
+                else:
+                    invite_user.login_bonus = True
+                    invite_user.save()
+                cr.save()
         if bonus == 'songs':
             if invite_user.songs_bonus:
                 self.update_status(StatusCode.ERROR_BONUS_OVER)
             elif invite_user.current_level < DEFAULT_SONGS_BONUS_THRESHOLD:
                 self.update_status(StatusCode.ERROR_BONUS_LESS)
             else:
-                invite_user.songs_bonus = True
-                invite_user.save()
+                cr, result = self.create_cash_record()
+                if not result:
+                    self.update_status(StatusCode.ERROR_DATA)
+                    self.message = cr.reason
+                else:
+                    invite_user.songs_bonus = True
+                    invite_user.save()
+                cr.save()
         return self.render_to_response()
