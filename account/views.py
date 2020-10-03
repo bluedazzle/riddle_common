@@ -257,6 +257,8 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
     def get(self, request, *args, **kwargs):
         uid = request.GET.get('uid', '')
         bonus = request.GET.get('bonus', '')
+        cash = 30 + random.randint(0, 9)
+        cr = None
         objs = self.model.objects.filter(id=uid).all()
         if not objs.exists() or (bonus != 'login' and bonus != 'songs'):
             self.update_status(StatusCode.ERROR_INVITE_BONUS)
@@ -266,7 +268,7 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
             if invite_user.login_bonus:
                 self.update_status(StatusCode.ERROR_BONUS_OVER)
             else:
-                cr, result = self.create_cash_record()
+                cr, result = self.create_cash_record(cash=cash)
                 if not result:
                     self.update_status(StatusCode.ERROR_DATA)
                     self.message = cr.reason
@@ -280,7 +282,7 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
             elif invite_user.current_level < DEFAULT_SONGS_BONUS_THRESHOLD:
                 self.update_status(StatusCode.ERROR_BONUS_LESS)
             else:
-                cr, result = self.create_cash_record()
+                cr, result = self.create_cash_record(cash=cash)
                 if not result:
                     self.update_status(StatusCode.ERROR_DATA)
                     self.message = cr.reason
@@ -288,4 +290,11 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
                     invite_user.songs_bonus = True
                     invite_user.save()
                 cr.save()
-        return self.render_to_response()
+        return self.render_to_response({
+            "type": 5,   # 即时到账红包
+            "amount": cash,
+            "other_rewards": [
+                { "type": 1, "amount": 2000 },   # 红包
+                { "type": 4, "amount": 20000 },  # 提现卡
+            ],
+        })
