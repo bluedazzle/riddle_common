@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import random
 import string
+import uuid 
 
 import datetime
 
@@ -236,6 +237,7 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
         uid = str(uuid.uuid1())
         suid = ''.join(uid.split('-'))
         cash_record = CashRecord()
+        cash_record.cash = cash
         cash_record.belong = self.user
         cash_record.status = STATUS_REVIEW
         cash_record.cash_type = '邀请注册红包提现'
