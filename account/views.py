@@ -259,7 +259,7 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
     def get(self, request, *args, **kwargs):
         uid = request.GET.get('uid', '')
         bonus = request.GET.get('bonus', '')
-        cash = 30 + random.randint(0, 9)
+        cash = 30 + random.randint(0, 5)
         cr = None
         objs = self.model.objects.filter(id=uid).all()
         if not objs.exists() or (bonus != 'login' and bonus != 'songs'):
