@@ -233,14 +233,14 @@ class InviteKeyView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
 class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     model = User
 
-    def create_cash_record(self, cash=30):
+    def create_cash_record(self, cash=30, cash_type='邀请任务奖励'):
         uid = str(uuid.uuid1())
         suid = ''.join(uid.split('-'))
         cash_record = CashRecord()
         cash_record.cash = cash
         cash_record.belong = self.user
         cash_record.status = STATUS_REVIEW
-        cash_record.cash_type = '邀请注册红包提现'
+        cash_record.cash_type = cash_type
         cash_record.reason = '审核中'
         cash_record.trade_no = suid
         resp = send_money_by_open_id(suid, self.user.wx_open_id, cash)
@@ -270,7 +270,7 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
             if invite_user.login_bonus:
                 self.update_status(StatusCode.ERROR_BONUS_OVER)
             else:
-                cr, result = self.create_cash_record(cash=cash)
+                cr, result = self.create_cash_record(cash=cash, cash_type='邀请好友注册奖励')
                 if not result:
                     self.update_status(StatusCode.ERROR_DATA)
                     self.message = cr.reason
@@ -284,7 +284,7 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
             elif invite_user.current_level < DEFAULT_SONGS_BONUS_THRESHOLD:
                 self.update_status(StatusCode.ERROR_BONUS_LESS)
             else:
-                cr, result = self.create_cash_record(cash=cash)
+                cr, result = self.create_cash_record(cash=cash, cash_type='好友猜歌奖励')
                 if not result:
                     self.update_status(StatusCode.ERROR_DATA)
                     self.message = cr.reason
@@ -296,7 +296,8 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
             "type": 5,   # 即时到账红包
             "amount": cash,
             "other_rewards": [
-                { "type": 1, "amount": 2000 },   # 红包
-                { "type": 4, "amount": 20000 },  # 提现卡
+                { "type": 1, "amount": random.randint(10, 50) * 100 },  # 红包
+                { "type": 1, "amount": random.randint(10, 50) * 10 },  # 红包
+                #{ "type": 4, "amount": 20000 },  # 提现卡
             ],
         })
