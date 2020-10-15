@@ -74,8 +74,9 @@ class ABTest(BaseModel):
         (STATUS_DESTROY, '终止'),
     )
     name = models.CharField(verbose_name='实验名称', default='实验组', max_length=100)
+    slug = models.CharField(verbose_name='实验标识符（唯一）', default='', max_length=10)
     desc = models.TextField(verbose_name='实验描述', default='实验描述', null=True, blank=True, max_length=4096)
-    status = models.BooleanField(verbose_name='实验状态', default=STATUS_ENABLE, choices=status_choices)
+    status = models.IntegerField(verbose_name='实验状态', default=STATUS_ENABLE, choices=status_choices)
     # 11~110
     traffic = models.IntegerField(verbose_name='本组实验共占用的流量百分比，实验对照组将均分此占比，请输入2~100的偶数)', default=10)
     test_a_id = models.IntegerField(default=1, editable=False)
@@ -87,6 +88,7 @@ class ABTest(BaseModel):
 
     def clean(self):
         errors = {}
+        obj = ABTest.objects.filter(id=self.id).all()
         try:
             if self.traffic > 100:
                 raise ValidationError("实验流量占比不能 > 100%")
@@ -99,7 +101,6 @@ class ABTest(BaseModel):
                 cursor = obj.test_b_end_value + 1
             if cursor + self.traffic > 110:
                 raise ValidationError('剩余实验流量不足新建本实验')
-            obj = ABTest.objects.filter(id=self.id).all()
             ext = None
             if obj.exists():
                 ext = obj[0]
@@ -107,6 +108,13 @@ class ABTest(BaseModel):
                     raise ValidationError('流量占比无法修改')
         except ValidationError as e:
             errors['traffic'] = e.error_list
+        try:
+            if obj.exists():
+                ext = obj[0]
+                if ext.status == STATUS_DESTROY and self.status != STATUS_DESTROY:
+                    raise ValidationError('已终止实验无法开启')
+        except ValidationError as e:
+            errors['status'] = e.error_list
         if errors:
             raise ValidationError(errors)
 

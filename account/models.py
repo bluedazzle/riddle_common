@@ -52,6 +52,7 @@ class User(BaseModel):
     inviter = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True)
     login_bonus = models.BooleanField(default=False, verbose_name='是否领取邀请登录红包')
     songs_bonus = models.BooleanField(default=False, verbose_name='是否领取邀请答题红包')
+    ab_test_id = models.CharField(max_length=100, default='')
 
     def __unicode__(self):
         return '{0}'.format(self.name)
