@@ -29,7 +29,7 @@ def config_client_redis_zhz():
 
 def config_redis_ab_test():
     global client_redis_ab_test
-    client_redis_ab_test = redis.StrictRedis(db=int(conf.redis_ab_test_db), host=conf.redis_host,
+    client_redis_ab_test = redis.StrictRedis(db=int(3), host=conf.redis_host,
                                              port=int(conf.redis_port))
 
 
