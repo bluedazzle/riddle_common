@@ -8,4 +8,5 @@ class MyAppConfig(AppConfig):
     name = 'baseconf'
 
     def ready(self):
-        update_ab_test_config_from_cache()
+        pass
+        # update_ab_test_config_from_cache()
