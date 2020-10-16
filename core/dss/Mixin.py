@@ -45,6 +45,7 @@ class CheckTokenMixin(object):
     force_check = True
 
     def get_current_token(self):
+        print(self.request.GET)
         self.token = self.request.GET.get('token', None) or self.request.POST.get('token', None)
         if not self.token:
             self.token = self.request.session.get(
@@ -52,6 +53,7 @@ class CheckTokenMixin(object):
         return self.token
 
     def check_token(self):
+        # 废弃
         self.get_current_token()
         user_list = User.objects.filter(token=self.token)
         if user_list.exists():
@@ -59,15 +61,22 @@ class CheckTokenMixin(object):
             return True
         return False
 
+    def check_user(self, request):
+        user = getattr(request, 'account')
+        if user:
+            self.user = user
+        return user
+
     def wrap_check_token_result(self):
-        result = self.check_token()
-        if not result:
+        # if not self.user:
+        if not self.check_token():
             if self.force_check:
                 self.update_status(StatusCode.ERROR_PERMISSION_DENIED)
             return False
         return True
 
     def dispatch(self, request, *args, **kwargs):
+        # self.check_user(request)
         if not self.wrap_check_token_result() and self.force_check:
             return self.render_to_response()
         return super(CheckTokenMixin, self).dispatch(request, *args, **kwargs)

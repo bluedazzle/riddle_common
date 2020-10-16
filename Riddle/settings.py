@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-from core.cache import config_client_redis_zhz
+from core.cache import config_client_redis_zhz, config_redis_ab_test
 from core.utils import conf
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,8 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '+matthg$w)x_5#ax0uug(jdy0)@^5(a)%w6mr$bmbcsac-n7x4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = conf.debug == 'True'
-DEBUG = False
+DEBUG = conf.debug == 'True'
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
@@ -60,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.ABTestMiddleWare',
 ]
 
 ROOT_URLCONF = 'Riddle.urls'
@@ -146,3 +146,4 @@ STATIC_MEDIA = './static/'
 
 # init dependency
 config_client_redis_zhz()
+config_redis_ab_test()

@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 from django.views.generic import DetailView, ListView
 
+from core.Mixin.ABTestMixin import ABTestMixin
 from core.Mixin.StatusWrapMixin import StatusWrapMixin
 from core.consts import NEW_WITHDRAW, NORMAL_WITHDRAW
 from core.dss.Mixin import MultipleJsonResponseMixin, JsonResponseMixin, CheckTokenMixin
@@ -49,3 +50,15 @@ class WithdrawConfView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Deta
                 'amount': obj.withdraw_third_threshold, 'order_id': 3}
         obj_list.append(data)
         return self.render_to_response({'withdraw_conf': obj_list})
+
+
+class ABTestDemoView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    def handler_default(self, *args, **kwargs):
+        return 'default group'
+
+    def handler_b(self, *args, **kwargs):
+        return 'experiment group'
+
+    def get(self, request, *args, **kwargs):
+        result = self.ab_test_handle(slug='test')
+        return self.render_to_response({'result': result})

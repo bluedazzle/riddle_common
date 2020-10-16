@@ -7,7 +7,7 @@ from django.db import models
 from account.models import BaseModel
 
 # Create your models here.
-from core.cache import set_global_config_to_cache
+from core.cache import set_global_config_to_cache, update_ab_test_config_from_cache
 from core.consts import DEFAULT_ALLOW_CASH_COUNT, DEFAULT_COIN_CASH_PROPORTION, TOTAL_LEVEL, ROUND_CASH, ROUND_COUNT, \
     DEFAULT_NEW_PACKET, DEFAULT_NEW_WITHDRAW_THRESHOLD, DEFAULT_FIRST_WITHDRAW_THRESHOLD, \
     DEFAULT_SECOND_WITHDRAW_THRESHOLD, DEFAULT_THIRD_WITHDRAW_THRESHOLD, DEFAULT_ALLOW_CASH_RIGHT_COUNT, STATUS_FAIL, \
@@ -79,12 +79,19 @@ class ABTest(BaseModel):
     status = models.IntegerField(verbose_name='实验状态', default=STATUS_ENABLE, choices=status_choices)
     # 11~110
     traffic = models.IntegerField(verbose_name='本组实验共占用的流量百分比，实验对照组将均分此占比，请输入2~100的偶数)', default=10)
-    test_a_id = models.IntegerField(default=1, editable=False)
-    test_a_start_value = models.IntegerField(default=0, editable=False)
-    test_a_end_value = models.IntegerField(default=0, editable=False)
-    test_b_id = models.IntegerField(default=2, editable=False)
-    test_b_start_value = models.IntegerField(default=0, editable=False)
-    test_b_end_value = models.IntegerField(default=0, editable=False)
+    # test_a_id = models.IntegerField(default=1, editable=False)
+    # test_a_start_value = models.IntegerField(default=0, editable=False)
+    # test_a_end_value = models.IntegerField(default=0, editable=False)
+    # test_b_id = models.IntegerField(default=2, editable=False)
+    # test_b_start_value = models.IntegerField(default=0, editable=False)
+    # test_b_end_value = models.IntegerField(default=0, editable=False)
+
+    test_a_id = models.IntegerField(default=1)
+    test_a_start_value = models.IntegerField(default=0)
+    test_a_end_value = models.IntegerField(default=0)
+    test_b_id = models.IntegerField(default=2)
+    test_b_start_value = models.IntegerField(default=0)
+    test_b_end_value = models.IntegerField(default=0)
 
     def clean(self):
         errors = {}
@@ -95,11 +102,11 @@ class ABTest(BaseModel):
             if self.traffic % 2 == 1:
                 raise ValidationError("实验流量无法均分")
             objs = ABTest.objects.exclude(status=STATUS_DESTROY).order_by('-create_time').all()
-            cursor = 11
+            cursor = 0
             if objs.exists():
-                obj = objs[0]
-                cursor = obj.test_b_end_value + 1
-            if cursor + self.traffic > 110:
+                ob = objs[0]
+                cursor = ob.test_b_end_value + 1
+            if cursor + self.traffic > 99:
                 raise ValidationError('剩余实验流量不足新建本实验')
             ext = None
             if obj.exists():
@@ -125,7 +132,7 @@ class ABTest(BaseModel):
             return super(ABTest, self).save(force_insert=False, force_update=False, using=None,
                                             update_fields=None)
         objs = ABTest.objects.exclude(status=STATUS_DESTROY).order_by('-create_time').all()
-        cursor = 11
+        cursor = 0
         if objs.exists():
             obj = objs[0]
             cursor = obj.test_b_end_value + 1
@@ -137,8 +144,10 @@ class ABTest(BaseModel):
         self.test_b_start_value = cursor
         cursor += step
         self.test_b_end_value = cursor
-        return super(ABTest, self).save(force_insert=False, force_update=False, using=None,
-                                        update_fields=None)
+        ret = super(ABTest, self).save(force_insert=False, force_update=False, using=None,
+                                       update_fields=None)
+        update_ab_test_config_from_cache()
+        return ret
 
     def __str__(self):
         return self.name

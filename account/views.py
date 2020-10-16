@@ -35,8 +35,10 @@ class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, 
     datetime_type = 'timestamp'
     http_method_names = ['get']
 
+    def get_object(self, queryset=None):
+        return self.user
+
     def get(self, request, *args, **kwargs):
-        self.kwargs['slug'] = self.token
         return super(UserInfoView, self).get(self, request, *args, **kwargs)
 
 

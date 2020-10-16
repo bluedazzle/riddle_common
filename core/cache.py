@@ -1,21 +1,36 @@
 # coding: utf-8
 from __future__ import unicode_literals
+
+import json
+
+import logging
+
+from core.consts import STATUS_DESTROY
 from core.utils import conf
 
 import redis
 
 client_redis_riddle = None
+client_redis_ab_test = None
 
 GLOBAL_CONF_KEY = 'riddle_global_conf'
 WITHDRAW_CONF_KEY = 'riddle_global_conf'
 VERIFY_CODE_KEY = '{0}_verify'
 REWARD_KEY = 'reward_{0}'
 EXPIRE_TIME = 300
+RD_AB_TEST_KEY = 'ab_test_config'
+RD_AB_DEST_KEY = 'ab_test_destroy'
 
 
 def config_client_redis_zhz():
     global client_redis_riddle
     client_redis_riddle = redis.StrictRedis(db=int(conf.redis_db), host=conf.redis_host, port=int(conf.redis_port))
+
+
+def config_redis_ab_test():
+    global client_redis_ab_test
+    client_redis_ab_test = redis.StrictRedis(db=int(conf.redis_ab_test_db), host=conf.redis_host,
+                                             port=int(conf.redis_port))
 
 
 def get_global_config_from_cache():
@@ -120,3 +135,53 @@ class KVRedisProxy(RedisProxy):
         base_keys = [self.base_key.format(itm) for itm in keys]
         result = self.redis.mget(base_keys)
         return [self.decode_value(itm) for itm in result]
+
+
+def update_ab_test_config_from_cache():
+    global client_redis_ab_test
+    from baseconf.models import ABTest
+    objs = ABTest.objects.exclude(status=STATUS_DESTROY).order_by('-create_time').all()
+    config = []
+    for obj in objs:
+        cf = {}
+        cf['aid'] = obj.id
+        cf['astart'] = obj.test_a_start_value
+        cf['aend'] = obj.test_a_end_value
+        cf['bstart'] = obj.test_b_start_value
+        cf['bend'] = obj.test_b_end_value
+        config.append(cf)
+    client_redis_ab_test.set(RD_AB_TEST_KEY, json.dumps(config))
+    objs = ABTest.objects.filter(status=STATUS_DESTROY).order_by('-create_time').all()
+    client_redis_ab_test.delete(RD_AB_DEST_KEY)
+    for obj in objs:
+        client_redis_ab_test.sadd(RD_AB_DEST_KEY, obj.id)
+
+
+def get_ab_test_config_from_cache():
+    global client_redis_ab_test
+    res = client_redis_ab_test.get(RD_AB_TEST_KEY)
+    if not res:
+        return []
+    config = json.loads(res)
+    return config
+
+
+def format_ab_test_config():
+    config = get_ab_test_config_from_cache()
+    config_dict = {}
+    for itm in config:
+        ab_test_id = '{0}AB1'.format(itm['aid'])
+        id_range = set(range(itm['astart'], itm['aend'] + 1))
+        config_dict[ab_test_id] = id_range
+        ab_test_id = '{0}AB2'.format(itm['aid'])
+        id_range = set(range(itm['bstart'], itm['bend'] + 1))
+        config_dict[ab_test_id] = id_range
+    return config_dict
+
+
+def is_ab_test_destroy_key_from_cache(key):
+    global client_redis_ab_test
+    if not client_redis_ab_test.exists(RD_AB_DEST_KEY):
+        return True
+    res = client_redis_ab_test.sismember(RD_AB_DEST_KEY, key)
+    return True if res else False

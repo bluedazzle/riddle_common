@@ -1,4 +1,6 @@
 # coding: utf-8
+import logging
+
 from baseconf.models import ABTest
 from core.consts import STATUS_DESTROY, STATUS_ENABLE
 
@@ -17,6 +19,7 @@ class ABTestMixin(object):
         if not objs.exists():
             return False
         obj = objs[0]
+        self.ab_status = obj.status
         self.ab_slug = obj.slug
         if test_id == 1:
             self.ab_a = True
@@ -38,7 +41,7 @@ class ABTestMixin(object):
 
     def ab_test_handle(self, slug, *args, **kwargs):
         if slug != self.ab_slug:
-            return None
+            return self.handler_default(*args, **kwargs)
         if self.ab_status != STATUS_ENABLE:
             return self.handler_default(*args, **kwargs)
         if self.ab_a:
@@ -48,12 +51,12 @@ class ABTestMixin(object):
         return None
 
     def dispatch(self, request, *args, **kwargs):
-        ab_test_id = str(request.GET.get('ab_test_id', ''))
+        ab_test_id = str(request.account.ab_test_id)
         ab_test_id = ab_test_id.upper().strip()
         if ab_test_id:
             try:
                 group_id, test_id = ab_test_id.split('AB')
                 self.get_ab_conf(group_id, test_id)
             except Exception as e:
-                pass
+                logging.exception(e)
         return super(ABTestMixin, self).dispatch(request, *args, **kwargs)

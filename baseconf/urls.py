@@ -9,4 +9,5 @@ urlpatterns = [
     url(r'^global_conf/$', GlobalConfView.as_view()),
     url(r'^page_conf/$', PageConfView.as_view()),
     url(r'^withdraw_conf/$', WithdrawConfView.as_view()),
+    url(r'^ab_demo/$', ABTestDemoView.as_view()),
 ]
