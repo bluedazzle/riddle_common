@@ -68,15 +68,14 @@ class CheckTokenMixin(object):
         return user
 
     def wrap_check_token_result(self):
-        # if not self.user:
-        if not self.check_token():
+        if not self.user:
             if self.force_check:
                 self.update_status(StatusCode.ERROR_PERMISSION_DENIED)
             return False
         return True
 
     def dispatch(self, request, *args, **kwargs):
-        # self.check_user(request)
+        self.check_user(request)
         if not self.wrap_check_token_result() and self.force_check:
             return self.render_to_response()
         return super(CheckTokenMixin, self).dispatch(request, *args, **kwargs)

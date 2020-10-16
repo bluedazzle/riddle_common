@@ -79,19 +79,12 @@ class ABTest(BaseModel):
     status = models.IntegerField(verbose_name='实验状态', default=STATUS_ENABLE, choices=status_choices)
     # 11~110
     traffic = models.IntegerField(verbose_name='本组实验共占用的流量百分比，实验对照组将均分此占比，请输入2~100的偶数)', default=10)
-    # test_a_id = models.IntegerField(default=1, editable=False)
-    # test_a_start_value = models.IntegerField(default=0, editable=False)
-    # test_a_end_value = models.IntegerField(default=0, editable=False)
-    # test_b_id = models.IntegerField(default=2, editable=False)
-    # test_b_start_value = models.IntegerField(default=0, editable=False)
-    # test_b_end_value = models.IntegerField(default=0, editable=False)
-
-    test_a_id = models.IntegerField(default=1)
-    test_a_start_value = models.IntegerField(default=0)
-    test_a_end_value = models.IntegerField(default=0)
-    test_b_id = models.IntegerField(default=2)
-    test_b_start_value = models.IntegerField(default=0)
-    test_b_end_value = models.IntegerField(default=0)
+    test_a_id = models.IntegerField(default=1, editable=False)
+    test_a_start_value = models.IntegerField(default=0, editable=False)
+    test_a_end_value = models.IntegerField(default=0, editable=False)
+    test_b_id = models.IntegerField(default=2, editable=False)
+    test_b_start_value = models.IntegerField(default=0, editable=False)
+    test_b_end_value = models.IntegerField(default=0, editable=False)
 
     def clean(self):
         errors = {}
