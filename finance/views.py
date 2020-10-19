@@ -62,7 +62,7 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
     conf = {}
 
     def simple_safe(self):
-        if not self.user.city and not self.user.province and self.user.wrong_count == 0 and self.user.wx_open_id:
+        if not self.user.city and not self.user.province and self.user.wx_open_id:
             c_start = self.user.create_time.replace(second=0, microsecond=0)
             c_end = self.user.create_time.replace(second=59, microsecond=999999)
             objs = User.objects.exclude(wx_open_id='').filter(province='', city='',
