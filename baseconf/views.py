@@ -60,5 +60,7 @@ class ABTestDemoView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponse
         return 'experiment group'
 
     def get(self, request, *args, **kwargs):
+        # pre
         result = self.ab_test_handle(slug='test1')
+        # post
         return self.render_to_response({'result': result})
