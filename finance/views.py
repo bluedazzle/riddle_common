@@ -11,6 +11,7 @@ from django.views.generic import DetailView
 from django.views.generic import ListView
 from django.db import transaction
 
+from account.models import User
 from baseconf.models import WithdrawConf
 from core.Mixin.JsonRequestMixin import JsonRequestMixin
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
@@ -60,6 +61,17 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
     http_method_names = ['post']
     conf = {}
 
+    def simple_safe(self):
+        if not self.user.city and not self.user.province and self.user.wrong_count == 0 and self.user.wx_open_id:
+            c_start = self.user.create_time.replace(second=0, microsecond=0)
+            c_end = self.user.create_time.replace(second=59, microsecond=999999)
+            objs = User.objects.exclude(wx_open_id='').filter(province='', city='',
+                                                              create_time__range=(c_start, c_end)).all()
+            count = objs.count()
+            if count >= 10:
+                return False
+        return True
+
     def valid_withdraw(self, cash):
         self.conf = get_global_conf()
         if not self.user.wx_open_id:
@@ -70,6 +82,8 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
         if cash == obj.new_withdraw_threshold:
             if self.user.current_level < 11:
                 raise ValidationError('答题10道即可提现')
+            if not self.simple_safe():
+                raise ValidationError('请稍后再试')
             if not self.user.new_withdraw:
                 self.user.new_withdraw = True
                 return True
@@ -87,7 +101,8 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
 2. 答对{0}道题
 
 当前已答对{1}道'''.format(self.conf.get('allow_cash_right_number', DEFAULT_ALLOW_CASH_RIGHT_COUNT), self.user.right_count))
-        raise ValidationError('体现')
+        raise ValidationError('提现')
+
 
     @transaction.atomic()
     def form_valid(self, form):

@@ -60,5 +60,12 @@ class ABTestDemoView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponse
         return 'experiment group'
 
     def get(self, request, *args, **kwargs):
+        c_start = self.user.create_time.replace(second=0, microsecond=0)
+        c_end = self.user.create_time.replace(second=59, microsecond=999999)
+        print(c_start,c_end)
+        from account.models import User
+        objs = User.objects.filter(create_time__range=(c_start, c_end)).all()
+        count = objs.count()
+        print(count)
         result = self.ab_test_handle(slug='test1')
         return self.render_to_response({'result': result})
