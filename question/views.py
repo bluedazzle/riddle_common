@@ -54,13 +54,13 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
     conf = {}
 
     def handler_default(self, *args, **kwargs):
-        cash = int(max((kwargs['round_cash'] - self.user.cash) / (kwargs['round_count'] - self.user.current_step) * (
-                    20 - 19 * self.user.current_step / kwargs['round_count']) * kwargs['rand_num'], 1))
+        cash = int(max((kwargs.get('round_cash') - self.user.cash) / (kwargs.get('round_count') - self.user.current_step) * (
+                    20 - 19 * self.user.current_step / kwargs.get('round_count')) * kwargs.get('rand_num'), 1))
         return cash
 
     def handler_b(self, *args, **kwargs):
         cash = int(max((29900 - self.user.cash) / (1000 - self.user.current_step) * (
-                10 + 10 * self.user.current_step / 100) * kwargs['rand_num'], 1))
+                10 + 10 * self.user.current_step / 100) * kwargs.get('rand_num'), 1))
         return cash
 
     def get(self, request, *args, **kwargs):
