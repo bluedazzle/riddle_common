@@ -91,25 +91,28 @@ class ABTest(ExportModelOperationsMixin("ABTest"), BaseModel):
     def clean(self):
         errors = {}
         obj = ABTest.objects.filter(id=self.id).all()
-        try:
-            if self.traffic > 100:
-                raise ValidationError("实验流量占比不能 > 100%")
-            if self.traffic % 2 == 1:
-                raise ValidationError("实验流量无法均分")
-            objs = ABTest.objects.exclude(status=STATUS_DESTROY).order_by('-create_time').all()
-            cursor = 0
-            if objs.exists():
-                ob = objs[0]
-                cursor = ob.test_b_end_value + 1
-            if cursor + self.traffic > 99:
-                raise ValidationError('剩余实验流量不足新建本实验')
-            ext = None
-            if obj.exists():
-                ext = obj[0]
+        if not obj.exists():
+            try:
+                if self.traffic > 100:
+                    raise ValidationError("实验流量占比不能 > 100%")
+                if self.traffic % 2 == 1:
+                    raise ValidationError("实验流量无法均分")
+                objs = ABTest.objects.exclude(status=STATUS_DESTROY).order_by('-create_time').all()
+                cursor = 0
+                if objs.exists():
+                    ob = objs[0]
+                    cursor = ob.test_b_end_value + 1
+                if cursor + self.traffic > 99:
+                    raise ValidationError('剩余实验流量不足新建本实验')
+            except ValidationError as e:
+                errors['traffic'] = e.error_list
+        else:
+            ext = obj[0]
+            try:
                 if self.traffic != ext.traffic:
                     raise ValidationError('流量占比无法修改')
-        except ValidationError as e:
-            errors['traffic'] = e.error_list
+            except ValidationError as e:
+                errors['traffic'] = e.error_list
         try:
             if obj.exists():
                 ext = obj[0]
