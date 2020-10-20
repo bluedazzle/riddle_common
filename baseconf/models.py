@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django_prometheus.models import ExportModelOperationsMixin
+
 from account.models import BaseModel
 
 # Create your models here.
@@ -15,7 +17,7 @@ from core.consts import DEFAULT_ALLOW_CASH_COUNT, DEFAULT_COIN_CASH_PROPORTION, 
 from core.dss.Serializer import serializer
 
 
-class GlobalConf(BaseModel):
+class GlobalConf(ExportModelOperationsMixin("GlobalConf"), BaseModel):
     coin_cash_proportion = models.IntegerField(default=DEFAULT_COIN_CASH_PROPORTION)
     total_level = models.IntegerField(default=TOTAL_LEVEL)
     round_cash = models.IntegerField(default=ROUND_CASH)
@@ -42,7 +44,7 @@ class GlobalConf(BaseModel):
                                             update_fields=None)
 
 
-class WithdrawConf(BaseModel):
+class WithdrawConf(ExportModelOperationsMixin("WithdrawConf"), BaseModel):
     new_withdraw_threshold = models.IntegerField(default=DEFAULT_NEW_WITHDRAW_THRESHOLD)
     withdraw_first_threshold = models.IntegerField(default=DEFAULT_FIRST_WITHDRAW_THRESHOLD)
     withdraw_second_threshold = models.IntegerField(default=DEFAULT_SECOND_WITHDRAW_THRESHOLD)
@@ -55,7 +57,7 @@ class WithdrawConf(BaseModel):
         return '提现配置'
 
 
-class PageConf(BaseModel):
+class PageConf(ExportModelOperationsMixin("PageConf"), BaseModel):
     privacy_url = models.URLField(verbose_name='隐私协议', null=True, blank=True)
     user_agreement_url = models.URLField(verbose_name='用户协议', null=True, blank=True)
     rewards_url = models.URLField(verbose_name='抽奖地址', null=True, blank=True)
@@ -67,7 +69,7 @@ class PageConf(BaseModel):
         return '页面地址配置'
 
 
-class ABTest(BaseModel):
+class ABTest(ExportModelOperationsMixin("ABTest"), BaseModel):
     status_choices = (
         (STATUS_ENABLE, '启用'),
         (STATUS_PAUSE, '暂停'),

@@ -28,6 +28,7 @@ SECRET_KEY = '+matthg$w)x_5#ax0uug(jdy0)@^5(a)%w6mr$bmbcsac-n7x4'
 DEBUG = conf.debug == 'True'
 
 ALLOWED_HOSTS = [
+    'nginx',
     '127.0.0.1',
     'localhost',
     '202.112.237.65',
@@ -91,7 +92,7 @@ WSGI_APPLICATION = 'Riddle.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django_prometheus.db.backends.postgresql',
         'NAME': conf.riddle_name,
         'USER': conf.riddle_user,
         'PASSWORD': conf.riddle_password,

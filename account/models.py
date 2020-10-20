@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils import timezone
+from django_prometheus.models import ExportModelOperationsMixin
 
 
 # Create your models here.
@@ -25,7 +26,7 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class User(BaseModel):
+class User(ExportModelOperationsMixin("User"), BaseModel):
     name = models.CharField(max_length=100, default='', verbose_name='用户名')
     token = models.CharField(max_length=128, unique=True)
     avatar = models.CharField(max_length=256, default='')

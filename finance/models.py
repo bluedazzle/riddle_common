@@ -2,6 +2,8 @@
 
 from __future__ import unicode_literals
 from django.db import models
+from django_prometheus.models import ExportModelOperationsMixin
+
 from account.models import BaseModel, User
 
 
@@ -10,7 +12,7 @@ from core.consts import PACKET_TYPE_NEW_CASH, PACKET_TYPE_CASH, PACKET_TYPE_EXTE
     PACKET_TYPE_WITHDRAW, STATUS_FAIL, STATUS_REVIEW, STATUS_FINISH
 
 
-class CashRecord(BaseModel):
+class CashRecord(ExportModelOperationsMixin("CashRecord"), BaseModel):
     status_choices = (
         (STATUS_FAIL, '提现失败'),
         (STATUS_REVIEW, '提现中'),
@@ -31,7 +33,7 @@ class CashRecord(BaseModel):
         return '{0} 提现 {1} 状态: {2} 时间: {3}'.format(self.belong.name, self.cash, self.status, self.create_time)
 
 
-class ExchangeRecord(BaseModel):
+class ExchangeRecord(ExportModelOperationsMixin("ExchangeRecord"), BaseModel):
     coin = models.IntegerField()
     cash = models.IntegerField()
     proportion = models.IntegerField(default=0)
@@ -44,7 +46,7 @@ class ExchangeRecord(BaseModel):
         return '{0}'.format(self.coin)
 
 
-class RedPacket(BaseModel):
+class RedPacket(ExportModelOperationsMixin("RedPacket"), BaseModel):
     type_choices = (
         (PACKET_TYPE_NEW_CASH, '新人红包'),
         (PACKET_TYPE_CASH, '现金红包'),
