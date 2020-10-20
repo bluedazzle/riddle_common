@@ -17,6 +17,7 @@ from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
 from question.models import Question
 from account.models import User
+from core.Mixin.ABTestMixin import ABTestMixin
 
 
 class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
@@ -46,11 +47,21 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
         return obj
 
 
-class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     model = Question
     pk_url_kwarg = 'qid'
     count = 32
     conf = {}
+
+    def handler_default(self, *args, **kwargs):
+        cash = int(max((kwargs['round_cash'] - self.user.cash) / (kwargs['round_count'] - self.user.current_step) * (
+                    20 - 19 * self.user.current_step / kwargs['round_count']) * kwargs['rand_num'], 1))
+        return cash
+
+    def handler_b(self, *args, **kwargs):
+        cash = int(max((29900 - self.user.cash) / (1000 - self.user.current_step) * (
+                10 + 10 * self.user.current_step / 100) * kwargs['rand_num'], 1))
+        return cash
 
     def get(self, request, *args, **kwargs):
         reward_count = DEFAULT_REWARD_COUNT
@@ -62,8 +73,8 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         self.conf = get_global_conf()
         round_cash = self.conf.get('round_cash', 30000)
         round_count = self.conf.get('round_count', 1000)
-        low_range = self.conf.get('low_range', 0.9)
-        high_range = self.conf.get('high_range', 1.0)
+        low_range = self.conf.get('low_range', 0.8)
+        high_range = self.conf.get('high_range', 1.2)
         const_num = self.conf.get('const_num', 0)
         obj = self.get_object()
         aid = int(request.GET.get('answer', 0))
@@ -85,11 +96,13 @@ class AnswerView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView
         # if self.user.current_step == round_count and self.user.cash < round_cash:
         #     cash = round_cash - self.user.cash
 
-        cash = int(max((round_cash-self.user.cash)/(round_count-self.user.current_step)*(20-19*self.user.current_step/round_count)*rand_num, 1))
+        # cash = int(max((round_cash-self.user.cash)/(round_count-self.user.current_step)*(20-19*self.user.current_step/round_count)*rand_num, 1))
         # print("round_cash: " + str(round_cash) + " user_cash: " + str(self.user.cash) + " round_count: " + str(round_count) +
         #       " current_step: " + str(self.user.current_step) + " rand_num: " + str(rand_num) + " cash: " + str(cash))
         # if self.user.cash > 29500 and self.user.current_level < 500:
         #     cash = 1
+
+        cash = self.ab_test_handle(slug='2991010', round_cash=round_cash, round_count=round_count, rand_num=rand_num)
 
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
         video = False
