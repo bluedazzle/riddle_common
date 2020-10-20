@@ -38,8 +38,8 @@ class ABTestMiddleWare(MiddlewareMixin):
                     user.save()
             else:
                 try:
-                    group_id, test_id = user.ab_test_id.split('AB')
-                    if is_ab_test_destroy_key_from_cache(group_id):
+                    slug, test_id = user.ab_test_id.split('&')
+                    if is_ab_test_destroy_key_from_cache(slug):
                         ab_test_id = self.get_ab_test_id(user.id)
                         if ab_test_id:
                             user.ab_test_id = ab_test_id

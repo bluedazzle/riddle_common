@@ -145,6 +145,7 @@ def update_ab_test_config_from_cache():
     for obj in objs:
         cf = {}
         cf['aid'] = obj.id
+        cf['slug'] = obj.slug
         cf['astart'] = obj.test_a_start_value
         cf['aend'] = obj.test_a_end_value
         cf['bstart'] = obj.test_b_start_value
@@ -154,7 +155,7 @@ def update_ab_test_config_from_cache():
     objs = ABTest.objects.filter(status=STATUS_DESTROY).order_by('-create_time').all()
     client_redis_ab_test.delete(RD_AB_DEST_KEY)
     for obj in objs:
-        client_redis_ab_test.sadd(RD_AB_DEST_KEY, obj.id)
+        client_redis_ab_test.sadd(RD_AB_DEST_KEY, obj.slug)
 
 
 def get_ab_test_config_from_cache():
@@ -170,10 +171,10 @@ def format_ab_test_config():
     config = get_ab_test_config_from_cache()
     config_dict = {}
     for itm in config:
-        ab_test_id = '{0}AB1'.format(itm['aid'])
+        ab_test_id = '{0}&1'.format(itm['slug'])
         id_range = set(range(itm['astart'], itm['aend'] + 1))
         config_dict[ab_test_id] = id_range
-        ab_test_id = '{0}AB2'.format(itm['aid'])
+        ab_test_id = '{0}&2'.format(itm['slug'])
         id_range = set(range(itm['bstart'], itm['bend'] + 1))
         config_dict[ab_test_id] = id_range
     return config_dict

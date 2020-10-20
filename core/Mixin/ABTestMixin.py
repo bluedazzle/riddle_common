@@ -13,9 +13,9 @@ class ABTestMixin(object):
     ab_status = STATUS_DESTROY
     ab_slug = ''
 
-    def get_ab_conf(self, group_id, test_id):
+    def get_ab_conf(self, slug, test_id):
         test_id = int(test_id)
-        objs = ABTest.objects.filter(id=group_id).all()
+        objs = ABTest.objects.filter(slug=slug).all()
         if not objs.exists():
             return False
         obj = objs[0]
@@ -55,8 +55,8 @@ class ABTestMixin(object):
         ab_test_id = ab_test_id.upper().strip()
         if ab_test_id:
             try:
-                group_id, test_id = ab_test_id.split('AB')
-                self.get_ab_conf(group_id, test_id)
+                slug, test_id = ab_test_id.split('&')
+                self.get_ab_conf(slug, test_id)
             except Exception as e:
                 logging.exception(e)
         return super(ABTestMixin, self).dispatch(request, *args, **kwargs)
