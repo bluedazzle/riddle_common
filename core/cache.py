@@ -183,6 +183,6 @@ def format_ab_test_config():
 def is_ab_test_destroy_key_from_cache(key):
     global client_redis_ab_test
     if not client_redis_ab_test.exists(RD_AB_DEST_KEY):
-        return True
+        return False
     res = client_redis_ab_test.sismember(RD_AB_DEST_KEY, key)
     return True if res else False
