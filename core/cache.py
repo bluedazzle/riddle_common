@@ -5,7 +5,7 @@ import json
 
 import logging
 
-from core.consts import STATUS_DESTROY
+from core.consts import STATUS_DESTROY, STATUS_ENABLE
 from core.utils import conf
 
 import redis
@@ -140,7 +140,7 @@ class KVRedisProxy(RedisProxy):
 def update_ab_test_config_from_cache():
     global client_redis_ab_test
     from baseconf.models import ABTest
-    objs = ABTest.objects.exclude(status=STATUS_DESTROY).order_by('-create_time').all()
+    objs = ABTest.objects.filter(status=STATUS_ENABLE).order_by('-create_time').all()
     config = []
     for obj in objs:
         cf = {}
