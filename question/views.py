@@ -157,21 +157,20 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
     pk_url_kwarg = 'qid'
 
     def post(self, request, *args, **kwargs):
-        obj = self.get_object()
         # todo 只是简单让关卡继续，没有做积分逻辑
-        if self.user.current_level - 1 != obj.order_id:
-            self.update_status(StatusCode.ERROR_QUESTION_ORDER)
-            return self.render_to_response()
+        # if self.user.current_level - 1 != obj.order_id:
+        #     self.update_status(StatusCode.ERROR_QUESTION_ORDER)
+        #     return self.render_to_response()
         # tag = request.GET.get('tag', '0')
         # if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
         #     self.update_status(StatusCode.ERROR_STIMULATE_TAG)
         #     return self.render_to_response()
-        # client_redis_riddle.delete(str(self.user.id) + 'tag')
-        # client_redis_riddle.delete(str(self.user.id) + 'cash')
-        # if self.user.current_level == 100:
-        #     self.user.current_level = 0
-        # self.user.current_level += 1
-        # self.user.save()
+        cash = client_redis_riddle.get(str(self.user.id) + 'cash')
+        if cash:
+            self.user.cash += int(cash)
+            client_redis_riddle.delete(str(self.user.id) + 'tag')
+            client_redis_riddle.delete(str(self.user.id) + 'cash')
+            self.user.save()
         return self.render_to_response()
 
 
@@ -222,9 +221,10 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
         #     self.update_status(StatusCode.ERROR_STIMULATE_TAG)
         #     return JsonResponse({'isValid': False})
         cash = client_redis_riddle.get(str(self.user.id) + 'cash')
-        self.user.cash += int(cash)
-        client_redis_riddle.delete(str(self.user.id) + 'tag')
-        client_redis_riddle.delete(str(self.user.id) + 'cash')
+        if cash:
+            self.user.cash += int(cash)
+            client_redis_riddle.delete(str(self.user.id) + 'tag')
+            client_redis_riddle.delete(str(self.user.id) + 'cash')
         if self.user.songs_count > 0:
             self.user.songs_count = 0
         # todo 正式上线去掉 or 增加
