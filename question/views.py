@@ -5,6 +5,7 @@ import string
 import json
 
 # Create your views here.
+import logging
 from django.http import JsonResponse
 from django.views.generic import DetailView
 
@@ -167,10 +168,14 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
         #     return self.render_to_response()
         cash = client_redis_riddle.get(str(self.user.id) + 'cash')
         if cash:
-            self.user.cash += int(cash)
-            client_redis_riddle.delete(str(self.user.id) + 'tag')
-            client_redis_riddle.delete(str(self.user.id) + 'cash')
-            self.user.save()
+            try:
+                cash = int(cash)
+                self.user.cash += cash
+                client_redis_riddle.delete(str(self.user.id) + 'tag')
+                client_redis_riddle.delete(str(self.user.id) + 'cash')
+                self.user.save()
+            except Exception as e:
+                logging.exception(e)
         return self.render_to_response()
 
 
