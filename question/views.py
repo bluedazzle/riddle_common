@@ -60,8 +60,8 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         return cash
 
     def handler_b(self, *args, **kwargs):
-        cash = int(max((29900 - self.user.cash) / (1000 - self.user.current_step) * (
-                10 + 10 * self.user.current_step / 100) * kwargs.get('rand_num'), 1))
+        cash = int(max((29800 - self.user.cash) / (1000 - self.user.current_step) * (
+                25 - 24 * self.user.current_step / 1000) * kwargs.get('rand_num'), 1))
         return cash
 
     def get(self, request, *args, **kwargs):
@@ -103,7 +103,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         # if self.user.cash > 29500 and self.user.current_level < 500:
         #     cash = 1
 
-        cash = self.ab_test_handle(slug='2991010', round_cash=round_cash, round_count=round_count, rand_num=rand_num)
+        cash = self.ab_test_handle(slug='2982524', round_cash=round_cash, round_count=round_count, rand_num=rand_num)
 
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
         video = False
@@ -173,9 +173,11 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
                 self.user.cash += cash
                 client_redis_riddle.delete(str(self.user.id) + 'tag')
                 client_redis_riddle.delete(str(self.user.id) + 'cash')
-                self.user.save()
             except Exception as e:
                 logging.exception(e)
+        if self.user.songs_count > 0:
+            self.user.songs_count = 0
+        self.user.save()
         return self.render_to_response()
 
 
