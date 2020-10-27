@@ -173,11 +173,9 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
                 self.user.cash += cash
                 client_redis_riddle.delete(str(self.user.id) + 'tag')
                 client_redis_riddle.delete(str(self.user.id) + 'cash')
-            except Exception as e:
+                self.user.save()
+        except Exception as e:
                 logging.exception(e)
-        if self.user.songs_count > 0:
-            self.user.songs_count = 0
-        self.user.save()
         return self.render_to_response()
 
 
