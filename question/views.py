@@ -166,6 +166,9 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
         # if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
         #     self.update_status(StatusCode.ERROR_STIMULATE_TAG)
         #     return self.render_to_response()
+        video = request.GET.get('is_watch_video', 0)
+        if video != 1:
+            return self.render_to_response()
         cash = client_redis_riddle.get(str(self.user.id) + 'cash')
         if cash:
             try:
