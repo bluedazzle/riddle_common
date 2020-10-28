@@ -57,7 +57,7 @@ class Command(BaseCommand):
         else:
             lines = questions
         for line in range(lines):
-            print('猜歌名'tr(line))
+            print('猜歌名' + str(line))
             if pd.isna(infos[u'是否完成'][line]) or pd.isna(infos[u'歌手名'][line]) or pd.isna(infos[u'正确歌曲名'][line]) \
                     or pd.isna(infos[u'容易度'][line]) or pd.isna(infos[u'错误歌曲名'][line]):
                 continue
