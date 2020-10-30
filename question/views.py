@@ -61,7 +61,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
 
     def handler_b(self, *args, **kwargs):
         cash = int(max((29800 - self.user.cash) / (1000 - self.user.current_step) * (
-                25 - 24 * self.user.current_step / 1000) * kwargs.get('rand_num'), 1))
+                17 - 16 * self.user.current_step / 1000) * kwargs.get('rand_num'), 1))
         return cash
 
     def get(self, request, *args, **kwargs):
@@ -103,7 +103,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         # if self.user.cash > 29500 and self.user.current_level < 500:
         #     cash = 1
 
-        cash = self.ab_test_handle(slug='2982524', round_cash=round_cash, round_count=round_count, rand_num=rand_num)
+        cash = self.ab_test_handle(slug='2981716', round_cash=round_cash, round_count=round_count, rand_num=rand_num)
 
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
         video = False
