@@ -1,6 +1,6 @@
 version: '3'
 services:
-  app:
+  app_girls:
     build: ./
     volumes:
       - ./:/site:rw
@@ -18,7 +18,7 @@ services:
       - ./static:/site/static:cached
       - ./conf/nginx/conf.d:/etc/nginx/conf.d:cached
     depends_on:
-      - app
+      - app_girls
 
   postgres:
     image: postgres:latest
