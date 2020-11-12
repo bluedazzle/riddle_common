@@ -44,6 +44,13 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
         else:
             answer_list = [{'answer_id': obj.right_answer_id, 'answer': obj.right_answer},
                            {'answer_id': obj.wrong_answer_id, 'answer': obj.wrong_answer}]
+        json_res_list = obj.resources
+        res_list = []
+        try:
+            res_list = json.loads(json_res_list)
+        except Exception as e:
+            logging.exception(e)
+        setattr(obj, 'resources', res_list)
         setattr(obj, 'answer_list', answer_list)
         return obj
 

@@ -20,7 +20,7 @@ class Song(BaseModel):
         return '{0}'.format(self.name)
 
 
-class Girls(BaseModel):
+class Girl(BaseModel):
     name = models.CharField(max_length=100, default='')
     resource_type = models.IntegerField(default=1)
     resources = models.TextField(max_length=2000, default='')
