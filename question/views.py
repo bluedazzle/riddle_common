@@ -6,12 +6,16 @@ import json
 
 # Create your views here.
 import logging
+
+import datetime
 from django.http import JsonResponse
 from django.views.generic import DetailView
+from django.utils import timezone
 
 from baseconf.models import PageConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
-from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS_THRESHOLD, DEFAULT_SONGS_TWO_COUNT, DEFAULT_SONGS_TWO_THRESHOLD, DEFAULT_SONGS_THREE_COUNT, DEFAULT_SONGS_THREE_THRESHOLD, \
+from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS_THRESHOLD, DEFAULT_SONGS_TWO_COUNT, \
+    DEFAULT_SONGS_TWO_THRESHOLD, DEFAULT_SONGS_THREE_COUNT, DEFAULT_SONGS_THREE_THRESHOLD, \
     NEW_VERSION_REWARD_COUNT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
@@ -26,6 +30,23 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
     exclude_attr = ['wrong_answer_id', 'wrong_answer', 'right_answer', 'right_answer_id']
     pk_url_kwarg = 'qid'
     datetime_type = 'timestamp'
+
+    def get_preload_data(self):
+        preload_level = self.user.current_level + 1
+        objs = self.model.objects.filter(order_id=preload_level).all()
+        if not objs.exists():
+            return None
+        obj = objs[0]
+        return obj
+
+    @staticmethod
+    def format_resources(resources):
+        res_list = []
+        try:
+            res_list = json.loads(resources)
+        except Exception as e:
+            logging.exception(e)
+        return res_list
 
     def get_object(self, queryset=None):
         obj = None
@@ -44,14 +65,17 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
         else:
             answer_list = [{'answer_id': obj.right_answer_id, 'answer': obj.right_answer},
                            {'answer_id': obj.wrong_answer_id, 'answer': obj.wrong_answer}]
-        json_res_list = obj.resources
-        res_list = []
-        try:
-            res_list = json.loads(json_res_list)
-        except Exception as e:
-            logging.exception(e)
-        setattr(obj, 'resources', res_list)
+        preload_data = {}
+        setattr(obj, 'resources', self.format_resources(obj.resources))
         setattr(obj, 'answer_list', answer_list)
+        setattr(obj, 'preload', preload_data)
+        preload = int(self.request.GET.get('preload', 0))
+        if not preload:
+            return obj
+        pre_obj = self.get_preload_data()
+        if pre_obj:
+            preload_data['resources'] = self.format_resources(pre_obj.resources)
+            setattr(obj, 'preload', preload_data)
         return obj
 
 
@@ -62,14 +86,33 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
     conf = {}
 
     def handler_default(self, *args, **kwargs):
-        cash = int(max((kwargs.get('round_cash') - self.user.cash) / (kwargs.get('round_count') - self.user.current_step) * (
-                    20 - 19 * self.user.current_step / kwargs.get('round_count')) * kwargs.get('rand_num'), 1))
+        cash = int(
+            max((kwargs.get('round_cash') - self.user.cash) / (kwargs.get('round_count') - self.user.current_step) * (
+                20 - 19 * self.user.current_step / kwargs.get('round_count')) * kwargs.get('rand_num'), 1))
         return cash
 
     def handler_b(self, *args, **kwargs):
         cash = int(max((29900 - self.user.cash) / (1000 - self.user.current_step) * (
-                10 + 10 * self.user.current_step / 100) * kwargs.get('rand_num'), 1))
+            10 + 10 * self.user.current_step / 100) * kwargs.get('rand_num'), 1))
         return cash
+
+    def daily_rewards_handler(self):
+        now_time = timezone.now()
+        if self.user.daily_reward_modify.day != now_time.day:
+            self.user.daily_reward_expire = None
+            self.user.daily_reward_draw = False
+            self.user.daily_reward_stage = 20
+            self.user.daily_reward_count = 0
+        if self.user.daily_reward_expire:
+            if now_time > self.user.daily_reward_expire:
+                self.user.daily_reward_draw = False
+        self.user.daily_reward_count += 1
+        if self.user.daily_reward_count == self.user.daily_reward_stage:
+            self.user.daily_reward_draw = True
+            self.user.daily_reward_expire = now_time + datetime.timedelta(minutes=10)
+            self.user.daily_reward_stage += 20
+        self.user.daily_reward_modify = now_time
+        return self.user.daily_reward_count
 
     def get(self, request, *args, **kwargs):
         reward_count = DEFAULT_REWARD_COUNT
@@ -116,13 +159,13 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         video = False
         self.user.songs_count += 1
         if self.user.current_level > DEFAULT_SONGS_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_TWO_THRESHOLD and \
-                self.user.songs_count % DEFAULT_SONGS_COUNT == 0:
+                                self.user.songs_count % DEFAULT_SONGS_COUNT == 0:
             video = True
         elif self.user.current_level > DEFAULT_SONGS_TWO_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_THREE_THRESHOLD and \
-                self.user.songs_count % DEFAULT_SONGS_TWO_COUNT == 0:
+                                self.user.songs_count % DEFAULT_SONGS_TWO_COUNT == 0:
             video = True
         elif self.user.current_level > DEFAULT_SONGS_THREE_THRESHOLD and \
-                self.user.songs_count % DEFAULT_SONGS_THREE_COUNT == 0:
+                                self.user.songs_count % DEFAULT_SONGS_THREE_COUNT == 0:
             video = True
         # elif self.user.songs_count > DEFAULT_SONGS_THRESHOLD and \
         #         (self.user.songs_count - DEFAULT_SONGS_THRESHOLD) > DEFAULT_SONGS_COUNT:
@@ -130,7 +173,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         if obj.right_answer_id != aid:
             self.user.wrong_count += 1
             self.user.reward_count = 0
-            if self.user.current_level == 1185:
+            if self.user.current_level == 1:
                 self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
@@ -155,6 +198,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         if self.user.current_level == 1185:
             self.user.current_level = 0
         self.user.current_level += 1
+        self.daily_rewards_handler()
         self.user.save()
         return self.render_to_response(
             {'answer': True, 'tag': tag, 'cash': cash, 'reward': reward, 'reward_url': reward_url, 'video': video})
