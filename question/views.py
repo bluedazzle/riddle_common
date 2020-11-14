@@ -75,7 +75,7 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
         pre_obj = self.get_preload_data()
         if pre_obj:
             preload_data['resources'] = self.format_resources(pre_obj.resources)
-            preload_data['resource_type'] = pre_obj.ressouce_type
+            preload_data['resource_type'] = pre_obj.resource_type
             setattr(obj, 'preload', preload_data)
         return obj
 
