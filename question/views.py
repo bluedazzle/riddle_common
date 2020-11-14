@@ -32,7 +32,7 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
     datetime_type = 'timestamp'
 
     def get_preload_data(self):
-        preload_level = self.user.current_level + 1
+        preload_level = self.user.current_level % 2 + 1
         objs = self.model.objects.filter(order_id=preload_level).all()
         if not objs.exists():
             return None
@@ -92,8 +92,9 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         return cash
 
     def handler_b(self, *args, **kwargs):
-        cash = int(max((29900 - self.user.cash) / (1000 - self.user.current_step) * (
-            10 + 10 * self.user.current_step / 100) * kwargs.get('rand_num'), 1))
+        cash = int(max((29800 - self.user.cash) / (1000 - self.user.current_step) * (
+                17 - 16 * self.user.current_step / 1000) * kwargs.get('rand_num'), 1))
+
         return cash
 
     def daily_rewards_handler(self):
@@ -153,7 +154,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         # if self.user.cash > 29500 and self.user.current_level < 500:
         #     cash = 1
 
-        cash = self.ab_test_handle(slug='2991010', round_cash=round_cash, round_count=round_count, rand_num=rand_num)
+        cash = self.ab_test_handle(slug='2981716', round_cash=round_cash, round_count=round_count, rand_num=rand_num)
 
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
         video = False
@@ -173,7 +174,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         if obj.right_answer_id != aid:
             self.user.wrong_count += 1
             self.user.reward_count = 0
-            if self.user.current_level == 1:
+            if self.user.current_level == 2:
                 self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
@@ -195,7 +196,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             client_redis_riddle.set(REWARD_KEY.format(self.user.id), 1, 600)
         elif self.user.reward_count > reward_count:
             self.user.reward_count -= reward_count
-        if self.user.current_level == 1185:
+        if self.user.current_level == 2:
             self.user.current_level = 0
         self.user.current_level += 1
         self.daily_rewards_handler()
@@ -217,6 +218,9 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
         # if tag != client_redis_riddle.get(str(self.user.id) + 'tag'):
         #     self.update_status(StatusCode.ERROR_STIMULATE_TAG)
         #     return self.render_to_response()
+        video = request.GET.get('is_watch_video', '0')
+        if video != '1':
+            return self.render_to_response()
         cash = client_redis_riddle.get(str(self.user.id) + 'cash')
         if cash:
             try:
