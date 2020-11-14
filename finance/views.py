@@ -5,11 +5,14 @@ from __future__ import unicode_literals
 import random
 import uuid
 
+import datetime
 from django.core.exceptions import ValidationError
 from django.views.generic import CreateView
 from django.views.generic import DetailView
 from django.views.generic import ListView
 from django.db import transaction
+from django.utils import timezone
+
 
 from account.models import User
 from baseconf.models import WithdrawConf
@@ -54,6 +57,21 @@ class ExchangeRecordListView(CheckTokenMixin, StatusWrapMixin, MultipleJsonRespo
     def get_queryset(self):
         self.get_list_by_user()
         return super(ExchangeRecordListView, self).get_queryset()
+
+
+class RewardListView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, ListView):
+    model = RedPacket
+    slug_field = 'token'
+    paginate_by = 10
+    ordering = ('-create_time',)
+    datetime_type = 'timestamp'
+
+    def get_list_by_user(self):
+        self.queryset = self.model.objects.filter(belong=self.user, reward_type=PACKET_TYPE_WITHDRAW)
+
+    def get_queryset(self):
+        self.get_list_by_user()
+        return super(RewardListView, self).get_queryset()
 
 
 class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, FormJsonResponseMixin, CreateView):
@@ -102,7 +120,6 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
 
 当前已答对{1}道'''.format(self.conf.get('allow_cash_right_number', DEFAULT_ALLOW_CASH_RIGHT_COUNT), self.user.right_count))
         raise ValidationError('提现')
-
 
     @transaction.atomic()
     def form_valid(self, form):
@@ -231,3 +248,34 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
             return self.render_to_response()
         reward_list = self.get_reward()
         return self.render_to_response({'reward_list': reward_list})
+
+
+class LuckyDrawView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView):
+    model = RedPacket
+    http_method_names = ['post']
+    conf = {}
+
+    def get_reward(self):
+        amount = 0
+        if self.user.cash >= DEFAULT_MAX_CASH_LIMIT:
+            amount = random.randint(1, 2)
+        else:
+            amount = random.randint(1, 500)
+        rp = RedPacket()
+        rp.amount = amount
+        rp.status = STATUS_USED
+        rp.reward_type = PACKET_TYPE_CASH
+        rp.expire = timezone.now() + datetime.timedelta(minutes=20)
+        rp.belong = self.user
+        rp.save()
+        self.user.cash += amount
+        self.user.daily_reward_draw = False
+        self.user.save()
+        return rp
+
+    def post(self, request, *args, **kwargs):
+        if not self.user.daily_reward_draw:
+            self.update_status(StatusCode.ERROR_REWARD_DENIED)
+            return self.render_to_response()
+        rp = self.get_reward()
+        return self.render_to_response({'reward': rp})

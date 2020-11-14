@@ -1,5 +1,5 @@
 <uwsgi>
-    <socket>:8000</socket>
+    <socket>:9000</socket>
     <listen>100</listen>
     <master>true</master>
     <processes>4</processes>
