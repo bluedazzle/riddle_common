@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import pandas as pd
+from urllib import parse
 import pypinyin
 import requests
 import random
@@ -14,7 +15,7 @@ from django.core.management.base import BaseCommand
 from question.models import Song
 from question.models import Question
 
-prefix = 'http://songs.guess-song.plutus-cat.com/'
+prefix = 'http://cai-ta.ecdn.plutus-cat.com/assets/'
 
 
 class Command(BaseCommand):
@@ -43,80 +44,71 @@ class Command(BaseCommand):
 
     def question_init(self, execl, questions=0):
         model_question = Question
-        model_song = Song
-        df = pd.read_excel(execl, sheet_name=u'songs', encoding='utf-8')
-        infos = df.ix[:, [u'是否完成', u'歌手名', u'正确歌曲名', u'容易度', u'新的顺序id', u'错误歌手名', u'错误歌曲名']]
-        questions_list = []
-        questions_singer_list = []
+        df = pd.read_excel(execl, sheet_name=u'questions', encoding='utf-8')
+        infos = df.ix[:, [u'id', u'题目顺序', u'题目类型', u'正确答案', u'错误答案']]
         model_question.objects.all().delete()
-        model_song.objects.all().delete()
-        questions_song = 0
-
+        questions_list = []
+        name_dic = {}
         if questions == 0:
-            lines = len(infos[u'歌手名'])
+            lines = len(infos[u'id'])
         else:
             lines = questions
         for line in range(lines):
-            print('猜歌名' + str(line))
-            if pd.isna(infos[u'是否完成'][line]) or pd.isna(infos[u'歌手名'][line]) or pd.isna(infos[u'正确歌曲名'][line]) \
-                    or pd.isna(infos[u'容易度'][line]) or pd.isna(infos[u'错误歌曲名'][line]):
+            pics_list = []
+            pics_num = 0
+            try_num = 0
+            try_total = 0
+            if pd.isna(infos[u'id'][line]) or pd.isna(infos[u'题目顺序'][line]) or pd.isna(infos[u'题目类型'][line]) \
+                    or pd.isna(infos[u'正确答案'][line]) or pd.isna(infos[u'错误答案'][line]):
                 continue
-            url = prefix + self.pingyin(infos[u'歌手名'][line]).replace('，', '') + '_' + self.pingyin(
-                infos[u'正确歌曲名'][line]).replace('，', '') + '.m4a'
-            try:
-                resp = requests.get(str(url), timeout=4)
-            except:
+            if not name_dic.get(infos[u'正确答案'][line]):
+                name_dic[infos[u'正确答案'][line]] = 1
+
+            while pics_num < 3:
+                pic = infos[u'正确答案'][line] + '/' + infos[u'正确答案'][line] + '-' + str(
+                    name_dic[infos[u'正确答案'][line]]) + '.jpg'
+                encode_pic = parse.quote(pic)
+                url = prefix + encode_pic
+                try:
+                    resp = requests.get(str(url), timeout=4)
+                except:
+                    try_num = try_num + 1
+                    name_dic[infos[u'正确答案'][line]] = name_dic[infos[u'正确答案'][line]] + 1
+                    if try_num >= 3:
+                        try_num = 0
+                        name_dic[infos[u'正确答案'][line]] = 0
+                    continue
+                if resp.status_code != 200:
+                    try_num = try_num + 1
+                    name_dic[infos[u'正确答案'][line]] = name_dic[infos[u'正确答案'][line]] + 1
+                    if try_num >= 3:
+                        try_num = 0
+                        name_dic[infos[u'正确答案'][line]] = 0
+                    continue
+                try_num = 0
+                try_total = try_total + 1
+                if try_total >= 12:
+                    break
+                name_dic[infos[u'正确答案'][line]] = name_dic[infos[u'正确答案'][line]] + 1
+                pics_num = pics_num + 1
+                pics_list.append(url)
+            if pics_num < 3:
                 continue
-            if resp.status_code != 200:
-                continue
-            tag = ''.join(
-                random.sample(
-                    'ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
-                    32)).replace(" ", "")
-            questions_list.append((int(infos[u'容易度'][line]), infos[u'歌手名'][line],
-                                   infos[u'正确歌曲名'][line], infos[u'错误歌曲名'][line], url, infos[u'新的顺序id'][line], tag))
-        questions_list.sort(key=lambda x: (x[0], x[5], x[6]))
+            print(pics_list)
+            questions_list.append((int(infos[u'id'][line]), int(infos[u'题目顺序'][line]), int(infos[u'题目类型'][line]),
+                                   infos[u'正确答案'][line], infos[u'错误答案'][line], pics_list))
+
+        questions_list.sort(key=lambda x: (x[1]))
 
         for num in range(len(questions_list)):
-            questions_song += 1
-            obj_question = model_question(title=u'猜猜这首歌叫什么', order_id=num + 1, question_type=1,
-                                          difficult=questions_list[num][0],
-                                          right_answer_id=1, right_answer=questions_list[num][2],
-                                          wrong_answer_id=2, wrong_answer=questions_list[num][3],
-                                          resource_url=questions_list[num][4])
+            obj_question = model_question(title=u'猜猜这是谁？', order_id=questions_list[num][0], question_type=1,
+                                          difficult=1,
+                                          right_answer_id=1, right_answer=questions_list[num][3],
+                                          wrong_answer_id=2, wrong_answer=questions_list[num][4],
+                                          resource_type=questions_list[num][2], resources=questions_list[num][5])
             obj_question.save()
-            obj_song = model_song(singer=questions_list[num][1], name=questions_list[num][2],
-                                  resource_url=questions_list[num][4])
-            obj_song.save()
 
-            # init the singer questions
-        for line in range(lines):
-            print('猜歌手' + str(line))
-            if pd.isna(infos[u'是否完成'][line]) or pd.isna(infos[u'歌手名'][line]) or pd.isna(infos[u'正确歌曲名'][line]) \
-                    or pd.isna(infos[u'容易度'][line]) or pd.isna(infos[u'错误歌手名'][line]):
-                continue
-            url = prefix + self.pingyin(infos[u'歌手名'][line]).replace('，', '') + '_' + self.pingyin(
-                infos[u'正确歌曲名'][line]).replace('，', '') + '.m4a'
-            try:
-                resp = requests.get(str(url), timeout=4)
-            except:
-                continue
-            if resp.status_code != 200:
-                continue
-            tag = ''.join(
-                        random.sample(
-                            'ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
-                            32)).replace(" ", "")
-            questions_singer_list.append((int(infos[u'容易度'][line]), infos[u'歌手名'][line],
-                                    infos[u'正确歌曲名'][line], infos[u'错误歌手名'][line], url, infos[u'新的顺序id'][line], tag))
-        questions_singer_list.sort(key=lambda x: (x[0], x[5], x[6]))
-
-        for num in range(len(questions_singer_list)):
-            obj_question = model_question(title=u'猜猜歌手叫什么', order_id=num+questions_song+1, question_type=2, difficult=questions_singer_list[num][0],
-                        right_answer_id=1, right_answer=questions_singer_list[num][1],
-                        wrong_answer_id=2, wrong_answer=questions_singer_list[num][3], resource_url=questions_singer_list[num][4])
-            obj_question.save()
 
     def handle(self, *args, **options):
         # self.song_init(u'question/management/commands/songs.xlsx', 100)
-        self.question_init(u'question/management/commands/songs.xlsx', 908)
+        self.question_init(u'question/management/commands/questions.xlsx', 180)
