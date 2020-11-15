@@ -6,6 +6,7 @@ from urllib import parse
 import pypinyin
 import requests
 import random
+import json
 import string
 import numpy as np
 from operator import itemgetter
@@ -96,7 +97,7 @@ class Command(BaseCommand):
                 continue
             print(pics_list)
             questions_list.append((int(infos[u'id'][line]), int(infos[u'题目顺序'][line]), int(infos[u'题目类型'][line]),
-                                   infos[u'正确答案'][line], infos[u'错误答案'][line], pics_list))
+                                   infos[u'正确答案'][line], infos[u'错误答案'][line], json.dumps(pics_list)))
 
         questions_list.sort(key=lambda x: (x[1]))
 
