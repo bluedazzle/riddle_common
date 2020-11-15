@@ -6,6 +6,8 @@ import random
 import uuid
 
 import datetime
+
+import logging
 from django.core.exceptions import ValidationError
 from django.views.generic import CreateView
 from django.views.generic import DetailView
@@ -255,24 +257,109 @@ class LuckyDrawView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateV
     http_method_names = ['post']
     conf = {}
 
-    def get_reward(self):
-        amount = 0
-        if self.user.cash >= DEFAULT_MAX_CASH_LIMIT:
-            amount = random.randint(1, 2)
-        else:
-            amount = random.randint(1, 500)
+    def simple_safe(self):
+        if not self.user.city and not self.user.province and self.user.wx_open_id:
+            c_start = self.user.create_time.replace(second=0, microsecond=0)
+            c_end = self.user.create_time.replace(second=59, microsecond=999999)
+            objs = User.objects.exclude(wx_open_id='').filter(province='', city='',
+                                                              create_time__range=(c_start, c_end)).all()
+            count = objs.count()
+            if count >= 10:
+                return False
+        return True
+
+    def valid_withdraw(self, cash):
+        if not self.simple_safe():
+            raise ValidationError('请稍后重试')
+        # self.conf = get_global_conf()
+        if not self.user.wx_open_id:
+            raise ValidationError('请绑定微信后提现')
+        if cash != 100 and cash != 50:
+            raise ValidationError('非法的提现金额')
+        if self.user.cash < obj.withdraw_first_threshold:
+            raise ValidationError('提现可用金额不足')
+
+    def create_cash_record(self, amount):
+        try:
+            self.valid_withdraw(amount)
+            uid = str(uuid.uuid1())
+            suid = ''.join(uid.split('-'))
+            cash = amount
+            cash_record = CashRecord()
+            cash_record.cash = cash
+            cash_record.cash_type = '抽奖提现'
+            cash_record.belong = self.user
+            cash_record.status = STATUS_REVIEW
+            cash_record.reason = '审核中'
+            cash_record.trade_no = suid
+            resp = send_money_by_open_id(suid, self.user.wx_open_id, cash)
+            if resp.get('result_code') == 'SUCCESS':
+                self.user.cash -= cash
+                cash_record.reason = '成功'
+                cash_record.status = STATUS_FINISH
+            else:
+                fail_message = resp.get('err_code_des', 'default_error')
+                cash_record.reason = fail_message
+                cash_record.status = STATUS_FAIL
+            cash_record.save()
+            return cash_record
+        except Exception as e:
+            logging.exception(e)
+        return None
+
+    def create_red_packet(self, amount, reward_type, use_expire=True):
         rp = RedPacket()
         rp.amount = amount
         rp.status = STATUS_USED
-        rp.reward_type = PACKET_TYPE_CASH
-        rp.expire = timezone.now() + datetime.timedelta(minutes=20)
+        rp.reward_type = reward_type
+        rp.expire = timezone.now()
         rp.belong = self.user
+        if use_expire:
+            rp.expire = timezone.now() + datetime.timedelta(minutes=20)
         rp.save()
+        return rp
+
+    def get_with_draw_list(self):
+        cash = self.user.cash
+        with_draw_list = []
+        if cash < 10000:
+            with_draw_list = [30000, 50000, 100000]
+        elif cash < 30000:
+            with_draw_list = [50000, 100000]
+        elif cash < 80000:
+            with_draw_list = [100000]
+        return with_draw_list
+
+    def get_reward(self):
+        rp = None
+        amount = 0
+        if self.user.check_point_draw:
+            self.user.check_point_draw = False
+            amount_dict = {0: 100, 1: 50}
+            amount = amount_dict.get(random.randint(0, 1), 50)
+            self.create_cash_record(amount)
+            rp = self.create_red_packet(amount, PACKET_TYPE_WITHDRAW, False)
+        else:
+            with_draws = self.get_with_draw_list()
+            if not with_draws:
+                amount = random.randint(1, 500)
+                rp = self.create_red_packet(amount, PACKET_TYPE_CASH, False)
+            else:
+                total_poss = 5 + len(with_draws) * 3
+                cash_range = 5.0 / total_poss * 100
+                lucky_number = random.randint(1, 100)
+                if lucky_number <= cash_range:
+                    amount = random.randint(1, 500)
+                    rp = self.create_red_packet(amount, PACKET_TYPE_CASH, False)
+                else:
+                    index = random.randint(0, len(with_draws) - 1)
+                    rp = self.create_red_packet(with_draws[index], PACKET_TYPE_WITHDRAW)
         self.user.cash += amount
         self.user.daily_reward_draw = False
         self.user.save()
         return rp
 
+    @transaction.atomic()
     def post(self, request, *args, **kwargs):
         if not self.user.daily_reward_draw:
             self.update_status(StatusCode.ERROR_REWARD_DENIED)

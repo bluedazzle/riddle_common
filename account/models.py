@@ -53,6 +53,7 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
     inviter = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True)
     login_bonus = models.BooleanField(default=False, verbose_name='是否领取邀请登录红包')
     songs_bonus = models.BooleanField(default=False, verbose_name='是否领取邀请答题红包')
+    check_point_draw = models.BooleanField(default=False)
 
     ab_test_id = models.CharField(max_length=100, default='')
     daily_reward_stage = models.IntegerField(default=20)  # 日常任务阶段 20/40/60/80
