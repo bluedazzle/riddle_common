@@ -2,10 +2,11 @@
 from __future__ import unicode_literals
 
 import pandas as pd
+from urllib import parse
 import pypinyin
-import urllib2
+import requests
 
-prefix = 'http://songs.guess-song.plutus-cat.com/'
+prefix = 'http://cai-ta.ecdn.plutus-cat.com/assets/'
 
 def pingyin(word):
     s = ''
@@ -28,8 +29,8 @@ def song_init(execl, songs=0):
 
 
 def question_init(execl, questions=0):
-    df = pd.read_excel(execl, sheet_name=u'songs', encoding='utf-8')
-    infos = df.ix[:, [u'是否完成', u'歌手名', u'歌曲名', u'容易度', u'错误歌曲名']]
+    df = pd.read_excel(execl, sheet_name=u'questions', encoding='utf-8')
+    infos = df.ix[:, [u'歌手名', u'歌曲名', u'容易度', u'错误歌曲名']]
     questions_list = []
     if questions == 0:
         lines = len(infos[u'歌手名'])
@@ -41,11 +42,11 @@ def question_init(execl, questions=0):
             continue
         url = prefix + pingyin(infos[u'歌手名'][line]).replace('，', '') + '_' + pingyin(infos[u'歌曲名'][line]).replace('，', '') + '.m4a'
         try:
-            resp = urllib2.urlopen(str(url))
+            resp = requests.get(str(url), timeout=4)
         except:
             print(url)
             continue
-        if resp.getcode() != 200:
+        if resp.status_code != 200:
             continue
         questions_list.append((int(infos[u'容易度'][line]), infos[u'歌曲名'][line], infos[u'错误歌曲名'][line], url))
     # sorted(questions2_list, key=itemgetter(1))
@@ -60,4 +61,13 @@ def question_init(execl, questions=0):
 
 
 if __name__ == "__main__":
-    question_init(u'songs.xlsx', 500)
+    # question_init(u'questions.xlsx', 100)
+
+    pic = '刘亦菲/刘亦菲－1' + '.jpg'
+    encode_pic = parse.quote(pic)
+    url = prefix + encode_pic
+
+    print(url)
+    resp = requests.get(url, timeout=4)
+    if resp.status_code != 200:
+        print("success!")
