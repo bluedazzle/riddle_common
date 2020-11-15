@@ -15,7 +15,7 @@ from django.core.management.base import BaseCommand
 from question.models import Song
 from question.models import Question
 
-prefix = 'http://songs.guess-song.plutus-cat.com/'
+prefix = 'http://cai-ta.ecdn.plutus-cat.com/assets/'
 
 
 class Command(BaseCommand):
@@ -46,6 +46,7 @@ class Command(BaseCommand):
         model_question = Question
         df = pd.read_excel(execl, sheet_name=u'questions', encoding='utf-8')
         infos = df.ix[:, [u'id', u'题目顺序', u'题目类型', u'正确答案', u'错误答案']]
+        model_question.objects.all().delete()
         questions_list = []
         name_dic = {}
         if questions == 0:
@@ -86,7 +87,7 @@ class Command(BaseCommand):
                     continue
                 try_num = 0
                 try_total = try_total + 1
-                if try_total == 12:
+                if try_total >= 12:
                     break
                 name_dic[infos[u'正确答案'][line]] = name_dic[infos[u'正确答案'][line]] + 1
                 pics_num = pics_num + 1
@@ -104,10 +105,10 @@ class Command(BaseCommand):
                                           difficult=1,
                                           right_answer_id=1, right_answer=questions_list[num][3],
                                           wrong_answer_id=2, wrong_answer=questions_list[num][4],
-                                          resource_type=questions_list[num][2], resources=questions_list[num][4])
+                                          resource_type=questions_list[num][2], resources=questions_list[num][5])
             obj_question.save()
 
 
     def handle(self, *args, **options):
         # self.song_init(u'question/management/commands/songs.xlsx', 100)
-        self.question_init(u'question/management/commands/songs.xlsx', 908)
+        self.question_init(u'question/management/commands/questions.xlsx', 180)
