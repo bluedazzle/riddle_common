@@ -310,7 +310,7 @@ class ValidView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView)
     force_check = True
     http_method_names = ['get']
 
-    def get(self):
+    def get(self, request, *args, **kwargs):
         self.user.valid_register = True
         self.user.save()
         return self.render_to_response({})
