@@ -54,6 +54,7 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
     login_bonus = models.BooleanField(default=False, verbose_name='是否领取邀请登录红包')
     songs_bonus = models.BooleanField(default=False, verbose_name='是否领取邀请答题红包')
     ab_test_id = models.CharField(max_length=100, default='')
+    valid_register = models.BooleanField(default=False)
 
     def __unicode__(self):
         return '{0}'.format(self.name)

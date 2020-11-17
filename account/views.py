@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import random
 import string
-import uuid 
+import uuid
 
 import datetime
 
@@ -303,3 +303,14 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
                 #{ "type": 4, "amount": 20000 },  # 提现卡
             ],
         })
+
+
+class ValidView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = User
+    force_check = True
+    http_method_names = ['get']
+
+    def get(self):
+        self.user.valid_register = True
+        self.user.save()
+        return self.render_to_response({})

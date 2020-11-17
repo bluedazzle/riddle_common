@@ -14,4 +14,5 @@ urlpatterns = [
     url(r'^share/$', UserShareView.as_view()),
     url(r'^invite_code/$', InviteKeyView.as_view()),
     url(r'^invite_bonus/$', InviteBonusView.as_view()),
+    url(r'^valid/$', ValidView.as_view()),
 ]
