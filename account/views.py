@@ -48,8 +48,19 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
     http_method_names = ['post']
     datetime_type = 'timestamp'
 
+    def get_object_by_did(self, did=None):
+        if not did:
+            return None
+        objs = self.model.objects.filter(device_id=did).all()
+        if not objs.exists():
+            return None
+        return objs[0]
+
     def post(self, request, *args, **kwargs):
         device_id = request.POST.get('device_id', '')
+        obj = self.get_object_by_did(device_id)
+        if obj:
+            return self.render_to_response({'user': obj})
         user = User()
         user.device_id = device_id
         user.token = self.create_token()
@@ -206,7 +217,8 @@ class UserShareView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin,
 
     def get_context_data(self, **kwargs):
         context = super(UserShareView, self).get_context_data(**kwargs)
-        context['user_list'] = serializer(context['user_list'], output_type='raw', include_attr=('name', 'avatar', 'cash', 'current_level', 'id', 'right_count', 'login_bonus', 'songs_bonus'))
+        context['user_list'] = serializer(context['user_list'], output_type='raw', include_attr=(
+        'name', 'avatar', 'cash', 'current_level', 'id', 'right_count', 'login_bonus', 'songs_bonus'))
         context['invite_code'] = self.user.invite_code
         context['song_threshold'] = DEFAULT_SONGS_BONUS_THRESHOLD
         return context
@@ -295,12 +307,12 @@ class InviteBonusView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detai
                     invite_user.save()
                 cr.save()
         return self.render_to_response({
-            "type": 5,   # 即时到账红包
+            "type": 5,  # 即时到账红包
             "amount": cash,
             "other_rewards": [
-                { "type": 1, "amount": random.randint(10, 50) * 100 },  # 红包
-                { "type": 1, "amount": random.randint(10, 50) * 10 },  # 红包
-                #{ "type": 4, "amount": 20000 },  # 提现卡
+                {"type": 1, "amount": random.randint(10, 50) * 100},  # 红包
+                {"type": 1, "amount": random.randint(10, 50) * 10},  # 红包
+                # { "type": 4, "amount": 20000 },  # 提现卡
             ],
         })
 
