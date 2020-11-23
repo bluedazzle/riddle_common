@@ -36,4 +36,3 @@ class Question(BaseModel):
 
     def __str__(self):
         return '排序:{0}-{1}:{2}'.format(self.order_id, self.title, self.right_answer)
-
