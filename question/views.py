@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import random
 import string
 import json
+import math
 
 # Create your views here.
 import logging
@@ -70,6 +71,19 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
 
         return cash
 
+
+    def new_version_handler(self):
+       cash_list = [1888, 243, 221, 198, 212, 176, 142, 158, 129, 105]
+
+       if self.user.current_level <= 10:
+           cash = cash_list[self.user.current_level - 1]
+       else:
+           rand_num = random.random() * (120 - 20) + 20
+           cash = 50 - (math.floor((self.user.current_level - 10) / 10) * 1) + rand_num
+           cash = int(max(cash, 1))
+
+       return cash
+
     def daily_rewards_handler(self):
         now_time = timezone.now()
         if self.user.daily_reward_modify.day != now_time.day:
@@ -87,6 +101,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             self.user.daily_reward_stage += 20
         self.user.daily_reward_modify = now_time
         return self.user.daily_reward_count
+
 
     def get(self, request, *args, **kwargs):
         reward_count = DEFAULT_REWARD_COUNT
@@ -110,7 +125,10 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             return self.render_to_response()
 
         rand_num = random.random() * (high_range - low_range) + low_range
-        cash = self.ab_test_handle(slug='2981716', round_cash=round_cash, round_count=round_count, rand_num=rand_num, const_num=const_num)
+        cash = self.ab_test_handle(slug='2981716', round_cash=round_cash, round_count=round_count, rand_num=rand_num)
+        if version >= 20112400 and version <= 20113099:
+           cash = self.new_version_handler()
+
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
 
         video = False
@@ -125,7 +143,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
                                 self.user.songs_count % DEFAULT_SONGS_THREE_COUNT == 0:
             video = True
 
-        if obj.right_answer_id != aid:
+        if obj.right_answer_id != aid and self.user.current_level != 1:
             self.user.wrong_count += 1
             self.user.reward_count = 0
             if self.user.current_level == 1185:
