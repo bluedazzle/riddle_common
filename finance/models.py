@@ -1,7 +1,10 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
+
+import datetime
 from django.db import models
+from django.utils import timezone
 from django_prometheus.models import ExportModelOperationsMixin
 
 from account.models import BaseModel, User
@@ -47,6 +50,7 @@ class ExchangeRecord(ExportModelOperationsMixin("ExchangeRecord"), BaseModel):
 
 
 class RedPacket(ExportModelOperationsMixin("RedPacket"), BaseModel):
+
     type_choices = (
         (PACKET_TYPE_NEW_CASH, '新人红包'),
         (PACKET_TYPE_CASH, '现金红包'),
@@ -58,6 +62,7 @@ class RedPacket(ExportModelOperationsMixin("RedPacket"), BaseModel):
     amount = models.IntegerField(default=0)
     reward_type = models.IntegerField(default=PACKET_TYPE_CASH, choices=type_choices)
     status = models.IntegerField(default=0)
+    expire = models.DateTimeField(default=timezone.now)
     belong = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __unicode__(self):
