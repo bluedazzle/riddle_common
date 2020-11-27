@@ -9,7 +9,7 @@
     <max-requests>1000</max-requests>
     <limit-as>512</limit-as>
     <reload-mercy>3</reload-mercy>
-    <harakiri>20</harakiri>
+    <harakiri>60</harakiri>
     <lazy/>
     <lock-engine>ipcsem</lock-engine>
     <!-- <logto>/logs/riddle.site.log</logto> -->
