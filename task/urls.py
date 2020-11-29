@@ -6,5 +6,5 @@ from django.conf.urls import include, url
 from task.views import *
 
 urlpatterns = [
-    url(r'^daily/$', ),
+    url(r'^daily/$', DailyTaskListView.as_view()),
 ]
