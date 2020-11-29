@@ -43,7 +43,7 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
                 obj = objs[0]
         if not obj:
             return obj
-        if random.random() > 0.5:
+        if random.random() > 0.5 or self.user.current_level == 1:
             answer_list = [{'answer_id': obj.wrong_answer_id, 'answer': obj.wrong_answer},
                            {'answer_id': obj.right_answer_id, 'answer': obj.right_answer}]
         else:
