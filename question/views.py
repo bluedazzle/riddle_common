@@ -9,6 +9,8 @@ import math
 import logging
 
 import datetime
+
+from django.db import transaction
 from django.http import JsonResponse
 from django.views.generic import DetailView
 from django.utils import timezone
@@ -21,6 +23,7 @@ from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
+from event.models import ObjectEvent
 from question.models import Question
 from account.models import User
 from core.Mixin.ABTestMixin import ABTestMixin
@@ -58,6 +61,13 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
     pk_url_kwarg = 'qid'
     count = 32
     conf = {}
+
+    def add_event(self):
+        event = ObjectEvent()
+        event.object = 'SONG'
+        event.action = 'ANSWER'
+        event.user_id = self.user.id
+        event.save()
 
     def handler_default(self, *args, **kwargs):
         cash = int(
@@ -102,7 +112,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         self.user.daily_reward_modify = now_time
         return self.user.daily_reward_count
 
-
+    @transaction.atomic()
     def get(self, request, *args, **kwargs):
         reward_count = DEFAULT_REWARD_COUNT
         version = int(request.GET.get('version', 0))
@@ -174,6 +184,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         self.user.current_level += 1
         self.daily_rewards_handler()
         self.user.save()
+        self.add_event()
         return self.render_to_response(
             {'answer': True, 'cash': cash, 'reward': reward, 'reward_url': reward_url, 'video': video})
 

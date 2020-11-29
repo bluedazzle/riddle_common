@@ -32,6 +32,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     'g.rapo.cc',
+    'n.rapo.cc',
     '202.112.237.65',
     'app.guess-song.plutus-cat.com',
     'tapp.guess-song.plutus-cat.com',

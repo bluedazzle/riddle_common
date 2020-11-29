@@ -15,3 +15,13 @@ class AdEvent(ExportModelOperationsMixin("AdEvent"), BaseModel):
 
     def __unicode__(self):
         return '{0}-{1}'.format(self.user_id, self.ad_type)
+
+
+class ObjectEvent(ExportModelOperationsMixin("ObjectEvent"), BaseModel):
+    object = models.CharField(max_length=100)
+    action = models.CharField(max_length=100)
+    extra = models.CharField(max_length=1024, null=True, blank=True)
+    user_id = models.IntegerField(default=0)
+
+    def __unicode__(self):
+        return '{0}-{1}'.format(self.user_id, self.object)
