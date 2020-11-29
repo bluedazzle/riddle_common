@@ -61,6 +61,12 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
     daily_reward_count = models.IntegerField(default=0)  # 当前任务进度
     daily_reward_expire = models.DateTimeField(null=True, blank=True)  # 过期时间
     daily_reward_modify = models.DateTimeField(default=timezone.now)  # 修改时间
+    daily_coin_exchange = models.BooleanField(default=False)
+    daily_lucky_draw = models.BooleanField(default=False)
+    daily_withdraw = models.BooleanField(default=False)
+    daily_right_count = models.IntegerField(default=0)
+    daily_watch_ad = models.IntegerField(default=0)
+    daily_sign_in = models.IntegerField(default=0)
 
     def __unicode__(self):
         return '{0}'.format(self.name)
