@@ -20,6 +20,9 @@ REWARD_KEY = 'reward_{0}'
 EXPIRE_TIME = 300
 RD_AB_TEST_KEY = 'ab_test_config'
 RD_AB_DEST_KEY = 'ab_test_destroy'
+RD_DAILY_TASK_CONF_KEY = 'daily_task_config'
+RD_COMMON_TASK_CONF_KEY = 'common_task_config'
+RD_TASK_ID_PREFIX = 'task_id_{0}'
 
 
 def config_client_redis_zhz():
@@ -165,6 +168,44 @@ def get_ab_test_config_from_cache():
         return []
     config = json.loads(res)
     return config
+
+
+def get_daily_task_config_from_cache():
+    global client_redis_riddle
+    res = client_redis_riddle.get(RD_DAILY_TASK_CONF_KEY)
+    if not res:
+        return []
+    config = json.loads(res)
+    return config
+
+
+def set_daily_task_config_to_cache(config):
+    global client_redis_riddle
+    res = client_redis_riddle.set(RD_DAILY_TASK_CONF_KEY, config)
+    return res
+
+
+def get_common_task_config_from_cache():
+    global client_redis_riddle
+    res = client_redis_riddle.get(RD_COMMON_TASK_CONF_KEY)
+    if not res:
+        return []
+    config = json.loads(res)
+    return config
+
+
+def set_common_task_config_to_cache(config):
+    global client_redis_riddle
+    res = client_redis_riddle.set(RD_COMMON_TASK_CONF_KEY, config)
+    return res
+
+
+def search_task_id(task_id):
+    global client_redis_riddle
+    res = client_redis_riddle.get(RD_TASK_ID_PREFIX.format(task_id))
+    if not res:
+        return False
+    return True
 
 
 def format_ab_test_config():

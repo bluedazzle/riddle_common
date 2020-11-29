@@ -7,4 +7,6 @@ from task.views import *
 
 urlpatterns = [
     url(r'^daily/$', DailyTaskListView.as_view()),
+    url(r'^common/$', CommonTaskListView.as_view()),
+    url(r'^valid/$', FinishTaskView.as_view()),
 ]
