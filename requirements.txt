@@ -22,4 +22,3 @@ xlrd==1.2.0
 psycopg2==2.7.4
 uWSGI==2.0.17
 django-prometheus
-django-cors-headers

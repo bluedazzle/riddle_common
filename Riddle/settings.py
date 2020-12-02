@@ -33,6 +33,7 @@ ALLOWED_HOSTS = [
     'localhost',
     'g.rapo.cc',
     '192.168.1.98',
+    'n.rapo.cc',
     '202.112.237.65',
     'app.guess-song.plutus-cat.com',
     'tapp.guess-song.plutus-cat.com',
@@ -52,22 +53,21 @@ INSTALLED_APPS = [
     'finance',
     'baseconf',
     'event',
-#    'django_prometheus',
-    'corsheaders',
+   'django_prometheus',
 ]
 
 MIDDLEWARE = [
- #   'django_prometheus.middleware.PrometheusBeforeMiddleware',
+   'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    # 'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.ABTestMiddleWare',
-  #  'django_prometheus.middleware.PrometheusAfterMiddleware',
+   'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 ROOT_URLCONF = 'Riddle.urls'
@@ -152,10 +152,10 @@ STATIC_ROOT = './static/'
 
 STATIC_MEDIA = './static/'
 
-CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_WHITELIST = ("http://cai-ta.ecdn.plutus-cat.com", "https://cai-ta.ecdn.plutus-cat.com")
-CORS_ALLOWED_ORIGINS = ["http://cai-ta.ecdn.plutus-cat.com",
-                        "https://cai-ta.ecdn.plutus-cat.com"]
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ORIGIN_WHITELIST = ("http://cai-ta.ecdn.plutus-cat.com", "https://cai-ta.ecdn.plutus-cat.com")
+# CORS_ALLOWED_ORIGINS = ["http://cai-ta.ecdn.plutus-cat.com",
+#                         "https://cai-ta.ecdn.plutus-cat.com"]
 
 # init dependency
 config_client_redis_zhz()

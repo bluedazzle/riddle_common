@@ -1,5 +1,5 @@
 <uwsgi>
-    <socket>:9000</socket>
+    <socket>:8000</socket>
     <listen>100</listen>
     <master>true</master>
     <processes>4</processes>
@@ -9,7 +9,7 @@
     <max-requests>1000</max-requests>
     <limit-as>512</limit-as>
     <reload-mercy>3</reload-mercy>
-    <harakiri>20</harakiri>
+    <harakiri>60</harakiri>
     <lazy/>
     <lock-engine>ipcsem</lock-engine>
     <!-- <logto>/logs/riddle.site.log</logto> -->
