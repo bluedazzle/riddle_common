@@ -25,7 +25,8 @@ class DailyTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
             obj = self.model.objects.all()[0]
             conf = obj.daily_task_config
             set_daily_task_config_to_cache(conf)
-        self.task_config = json.loads(conf)
+            conf = json.loads(conf)
+        self.task_config = conf
 
     def get(self, request, *args, **kwargs):
         self.get_daily_task_config()
@@ -47,12 +48,13 @@ class CommonTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, De
     model = TaskConf
 
     def get_common_task_config(self):
-        # conf = get_common_task_config_from_cache()
-        # if not conf:
-        obj = self.model.objects.all()[0]
-        conf = obj.common_task_config
-        # selt_common_task_config_to_cache(conf)
-        self.task_config = json.loads(conf)
+        conf = get_common_task_config_from_cache()
+        if not conf:
+            obj = self.model.objects.all()[0]
+            conf = obj.common_task_config
+            set_common_task_config_to_cache(conf)
+            conf = json.loads(conf)
+        self.task_config = conf
 
     def get(self, request, *args, **kwargs):
         self.get_common_task_config()
