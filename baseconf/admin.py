@@ -12,4 +12,5 @@ class ABTestAdmin(admin.ModelAdmin):
 admin.site.register(GlobalConf)
 admin.site.register(PageConf)
 admin.site.register(WithdrawConf)
+admin.site.register(TaskConf)
 admin.site.register(ABTest, ABTestAdmin)

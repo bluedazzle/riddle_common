@@ -1,0 +1,19 @@
+[
+  {"task_slug": "TASK_GUSS_RIGHT",
+    "task_type": "REPEAT", // REPEAT,ACTION,
+    "task_target": "daily_right_count",
+    "task_detail": [
+      {"level": 5, "reward": 2000, "reward_type": "COIN"},
+      {"level": 10, "reward": 3000, "reward_type": "COIN"},
+      {"level": 30, "reward": 5000, "reward_type": "COIN"},
+      {"level": 60, "reward": 10000, "reward_type": "COIN"}
+    ]
+  },
+  {"task_slug": "TASK_WITHDRAW",
+    "task_type": "ACTION", // REPEAT,ACTION
+    "task_target": "daily_withdraw",
+    "task_detail": [
+      {"level": true, "reward": 5000, "reward_type": "COIN"}
+    ]
+  }
+]

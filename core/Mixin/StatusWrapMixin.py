@@ -73,6 +73,8 @@ class StatusCode(ChoiceBase):
     ERROR_REPEAT_NEW_PACKET = 4001
     ERROR_REWARD_DENIED = 4002
 
+    ERROR_TASK_FINISHED = 5001
+
     __choices__ = (
         (INFO_SUCCESS, u'成功'),
         (ERROR_UNKNOWN, u'未知错误'),
@@ -101,6 +103,7 @@ class StatusCode(ChoiceBase):
         (ERROR_BONUS_LESS, u'尚未达到领取资格'),
         (ERROR_INVITE_EXIST, u'邀请人已存在'),
         (ERROR_INVITER_CODE, u'您的注册时间早于邀请人，无法被邀请'),
+        (ERROR_TASK_FINISHED, u'任务已完成'),
     )
 
 

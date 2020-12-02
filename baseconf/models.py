@@ -2,6 +2,8 @@
 
 from __future__ import unicode_literals
 
+import json
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
@@ -9,7 +11,8 @@ from django_prometheus.models import ExportModelOperationsMixin
 from account.models import BaseModel
 
 # Create your models here.
-from core.cache import set_global_config_to_cache, update_ab_test_config_from_cache
+from core.cache import set_global_config_to_cache, update_ab_test_config_from_cache, set_daily_task_config_to_cache, \
+    set_common_task_config_to_cache
 from core.consts import DEFAULT_ALLOW_CASH_COUNT, DEFAULT_COIN_CASH_PROPORTION, TOTAL_LEVEL, ROUND_CASH, ROUND_COUNT, \
     DEFAULT_NEW_PACKET, DEFAULT_NEW_WITHDRAW_THRESHOLD, DEFAULT_FIRST_WITHDRAW_THRESHOLD, \
     DEFAULT_SECOND_WITHDRAW_THRESHOLD, DEFAULT_THIRD_WITHDRAW_THRESHOLD, DEFAULT_ALLOW_CASH_RIGHT_COUNT, STATUS_FAIL, \
@@ -55,6 +58,36 @@ class WithdrawConf(ExportModelOperationsMixin("WithdrawConf"), BaseModel):
 
     def __str__(self):
         return '提现配置'
+
+
+class TaskConf(ExportModelOperationsMixin("TaskConf"), BaseModel):
+    daily_task_config = models.TextField(max_length=10000, null=True, blank=True)
+    common_task_config = models.TextField(max_length=10000, null=True, blank=True)
+
+    def __unicode__(self):
+        return '任务配置'
+
+    def __str__(self):
+        return '任务配置'
+
+    def clean(self):
+        errors = {}
+        try:
+            json.loads(self.daily_task_config)
+        except ValidationError as e:
+            errors['daily_task_config'] = e.error_list
+        try:
+            json.loads(self.common_task_config)
+        except ValidationError as e:
+            errors['common_task_config'] = e.error_list
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        set_daily_task_config_to_cache(self.daily_task_config)
+        set_common_task_config_to_cache(self.common_task_config)
+        return super(TaskConf, self).save(force_insert, force_update, using, update_fields)
 
 
 class PageConf(ExportModelOperationsMixin("PageConf"), BaseModel):
