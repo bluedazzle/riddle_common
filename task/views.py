@@ -89,4 +89,4 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
         slug = request.POST.get('slug')
         self.valid_task(slug, task_id)
         self.send_reward()
-        return self.render_to_response({})
+        return self.render_to_response({"coin": self.user.coin, "cash": self.user.cash})
