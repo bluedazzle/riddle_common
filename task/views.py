@@ -34,8 +34,9 @@ class DailyTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
         task_ok = 0
         for task in self.task_config:
             target = getattr(self.user, task.get("target"))
+            title = task.get("title")
             for itm in task.get("detail"):
-                task = create_task(self.user.id, target, task.get("slug"), **itm)
+                task = create_task(self.user.id, target, task.get("slug"), title, **itm)
                 if task.get("status") == TASK_OK:
                     task_ok += 1
                 daily_task_list.append(task)
