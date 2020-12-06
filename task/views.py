@@ -28,12 +28,18 @@ class DailyTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
             conf = json.loads(conf)
         self.task_config = conf
 
+    @staticmethod
+    def format_target(target):
+        if isinstance(target, bool):
+            return 1 if target else 0
+        return target
+
     def get(self, request, *args, **kwargs):
         self.get_daily_task_config()
         daily_task_list = []
         task_ok = 0
         for task in self.task_config:
-            target = getattr(self.user, task.get("target"))
+            target = self.format_target(getattr(self.user, task.get("target")))
             title = task.get("title")
             for itm in task.get("detail"):
                 task = create_task(self.user.id, target, task.get("slug"), title, **itm)
@@ -57,14 +63,21 @@ class CommonTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, De
             conf = json.loads(conf)
         self.task_config = conf
 
+    @staticmethod
+    def format_target(target):
+        if isinstance(target, bool):
+            return 1 if target else 0
+        return target
+
     def get(self, request, *args, **kwargs):
         self.get_common_task_config()
         common_task_list = list()
         task_ok = 0
         for task in self.task_config:
-            target = getattr(self.user, task.get("target"))
+            target = self.format_target(getattr(self.user, task.get("target")))
+            title = task.get("title")
             for itm in task.get("detail"):
-                task = create_task(self.user.id, target, task.get("slug"), **itm)
+                task = create_task(self.user.id, target, task.get("slug"), title, **itm)
                 if task.get("status") == TASK_OK:
                     task_ok += 1
                 common_task_list.append(task)
