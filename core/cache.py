@@ -200,9 +200,20 @@ def set_common_task_config_to_cache(config):
     return res
 
 
-def search_task_id(task_id):
+def search_task_id_by_cache(task_id):
     global client_redis_riddle
     res = client_redis_riddle.get(RD_TASK_ID_PREFIX.format(task_id))
+    if not res:
+        return False
+    return True
+
+
+def set_task_id_to_cache(task_id, ttl=None):
+    global client_redis_riddle
+    if ttl:
+        res = client_redis_riddle.setex(RD_TASK_ID_PREFIX.format(task_id), 1, ttl)
+    else:
+        res = client_redis_riddle.set(RD_TASK_ID_PREFIX.format(task_id), 1)
     if not res:
         return False
     return True

@@ -74,6 +74,7 @@ class StatusCode(ChoiceBase):
     ERROR_REWARD_DENIED = 4002
 
     ERROR_TASK_FINISHED = 5001
+    ERROR_TASK_NOT_EXIST = 5002
 
     __choices__ = (
         (INFO_SUCCESS, u'成功'),
@@ -104,6 +105,7 @@ class StatusCode(ChoiceBase):
         (ERROR_INVITE_EXIST, u'邀请人已存在'),
         (ERROR_INVITER_CODE, u'您的注册时间早于邀请人，无法被邀请'),
         (ERROR_TASK_FINISHED, u'任务已完成'),
+        (ERROR_TASK_NOT_EXIST, u'任务不存在'),
     )
 
 

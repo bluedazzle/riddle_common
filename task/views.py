@@ -2,6 +2,8 @@
 import json
 
 import logging
+
+from django.db import transaction
 from django.shortcuts import render
 
 # Create your views here.
@@ -10,9 +12,11 @@ from django.views.generic import DetailView
 from baseconf.models import TaskConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import get_daily_task_config_from_cache, set_daily_task_config_to_cache, \
-    get_common_task_config_from_cache, set_common_task_config_to_cache, search_task_id
+    get_common_task_config_from_cache, set_common_task_config_to_cache, search_task_id, search_task_id_by_cache, \
+    set_task_id_to_cache
 from core.consts import TASK_OK, TASK_DOING, TASK_TYPE_DAILY, TASK_TYPE_COMMON
 from core.dss.Mixin import CheckTokenMixin, JsonResponseMixin
+from task.models import DailyTask, CommonTask
 from task.utils import create_task, create_task_history, send_reward
 
 
@@ -90,8 +94,17 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
     task_type = TASK_TYPE_DAILY
 
     def valid_task(self, slug, task_id):
-        if search_task_id(task_id):
+        if search_task_id_by_cache(task_id):
             self.update_status(StatusCode.ERROR_TASK_FINISHED)
+            return False
+        if self.task_type == TASK_TYPE_DAILY:
+            objs = DailyTask.objects.filter(task_id=task_id).all()
+        else:
+            objs = CommonTask.objects.filter(task_id=task_id).all()
+        if objs.exists():
+            self.update_status(StatusCode.ERROR_TASK_FINISHED)
+            return False
+        return True
 
     def get_task_type(self, slug):
         task_type_dict = {'DAILY': TASK_TYPE_DAILY, 'COMMON': TASK_TYPE_COMMON}
@@ -137,7 +150,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
         task_dict = self.get_task_dict()
         task = task_dict.get(task_id)
         if not task:
-            self.update_status()
+            self.update_status(StatusCode.ERROR_TASK_NOT_EXIST)
             raise ValueError('任务不存在')
         reward = task.get('reward')
         reward_type = task.get('reward_type')
@@ -148,18 +161,27 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
     def create_task_history(self, task_id, slug, **kwargs):
         history = create_task_history(task_id, self.user.id, slug, self.task_type, **kwargs)
         history.save()
+        if self.task_type == TASK_TYPE_DAILY:
+            set_task_id_to_cache(task_id, 3600 * 24)
+        else:
+            set_task_id_to_cache(task_id)
         return history
 
+    @transaction.atomic()
     def post(self, request, *args, **kwargs):
         try:
             task_id = request.POST.get("task_id")
             slug = request.POST.get('slug')
-            self.valid_task(slug, task_id)
             self.get_task_type(slug)
+            self.valid_task(slug, task_id)
             amount, reward_type = self.send_reward(task_id)
             self.create_task_history(task_id, slug)
             return self.render_to_response(
                 {"coin": self.user.coin, "cash": self.user.cash, 'amount': amount, 'reward_type': reward_type})
+        except ValueError as e:
+            logging.exception(e)
+            return self.render_to_response()
         except Exception as e:
             logging.exception(e)
-            return self.render_to_response(e=e)
+            self.update_status(StatusCode.ERROR_DATA)
+            return self.render_to_response()
