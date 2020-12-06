@@ -96,19 +96,19 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
     def valid_task(self, slug, task_id):
         if search_task_id_by_cache(task_id):
             self.update_status(StatusCode.ERROR_TASK_FINISHED)
-            return False
+            raise ValueError()
         if self.task_type == TASK_TYPE_DAILY:
             objs = DailyTask.objects.filter(task_id=task_id).all()
         else:
             objs = CommonTask.objects.filter(task_id=task_id).all()
         if objs.exists():
             self.update_status(StatusCode.ERROR_TASK_FINISHED)
-            return False
+            raise ValueError()
         return True
 
     def get_task_type(self, slug):
         task_type_dict = {'DAILY': TASK_TYPE_DAILY, 'COMMON': TASK_TYPE_COMMON}
-        task_type, others = slug.split('_')
+        task_type = slug.split('_')[0]
         task_type = task_type.upper()
         self.task_type = task_type_dict.get(task_type, TASK_TYPE_DAILY)
 

@@ -211,7 +211,7 @@ def search_task_id_by_cache(task_id):
 def set_task_id_to_cache(task_id, ttl=None):
     global client_redis_riddle
     if ttl:
-        res = client_redis_riddle.setex(RD_TASK_ID_PREFIX.format(task_id), 1, ttl)
+        res = client_redis_riddle.setex(RD_TASK_ID_PREFIX.format(task_id), ttl, 1)
     else:
         res = client_redis_riddle.set(RD_TASK_ID_PREFIX.format(task_id), 1)
     if not res:

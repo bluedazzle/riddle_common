@@ -27,6 +27,7 @@ from event.models import ObjectEvent
 from question.models import Question
 from account.models import User
 from core.Mixin.ABTestMixin import ABTestMixin
+from task.utils import daily_task_attr_reset, update_task_attr
 
 
 class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
@@ -95,16 +96,10 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
        return cash
 
     def daily_rewards_handler(self):
-        now_time = timezone.now()
-        if self.user.daily_reward_modify.day != now_time.day:
-            self.user.daily_reward_expire = None
-            self.user.daily_reward_draw = False
-            self.user.daily_reward_stage = 20
-            self.user.daily_reward_count = 0
-        if self.user.daily_reward_expire:
-            if now_time > self.user.daily_reward_expire:
-                self.user.daily_reward_draw = False
+        now_time = timezone.localtime()
+        self.user = daily_task_attr_reset(self.user)
         self.user.daily_reward_count += 1
+        self.user.daily_right_count += 1
         if self.user.daily_reward_count == self.user.daily_reward_stage:
             self.user.daily_reward_draw = True
             self.user.daily_reward_expire = now_time + datetime.timedelta(minutes=10)
@@ -200,6 +195,7 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
         cash = client_redis_riddle.get(str(self.user.id) + 'cash')
         if cash:
             try:
+                update_task_attr(self.user, 'daily_watch_ad')
                 cash = int(cash)
                 self.user.cash += cash
                 client_redis_riddle.delete(str(self.user.id) + 'cash')

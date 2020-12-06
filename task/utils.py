@@ -4,6 +4,9 @@ import json
 
 import datetime
 
+from django.db.models import BooleanField
+from django.utils import timezone
+
 from account.models import User
 from core.cache import search_task_id_by_cache
 from core.consts import TASK_DOING, TASK_OK, TASK_FINISH, TASK_TYPE_DAILY, TASK_TYPE_COMMON
@@ -55,4 +58,38 @@ def send_reward(user: User, amount: int, reward_type: str):
     old_value = getattr(user, reward_type_attr)
     new_value = old_value + amount
     setattr(user, reward_type_attr, new_value)
+    return user
+
+
+def daily_task_attr_reset(user: User):
+    now_time = timezone.localtime()
+    if user.daily_reward_modify.astimezone().day != now_time.day:
+        user.daily_reward_expire = None
+        user.daily_reward_draw = False
+        user.daily_reward_stage = 20
+        user.daily_reward_count = 0
+        user.daily_right_count = 0
+        user.daily_watch_ad = 0
+        user.daily_reward_modify = now_time
+        user.daily_coin_exchange = False
+        user.daily_lucky_draw = False
+        user.daily_withdraw = False
+        if user.daily_sign_in == 7:
+            user.daily_sign_in = 0
+        user.daily_sign_in += 1
+    if user.daily_reward_expire:
+        if now_time > user.daily_reward_expire:
+            user.daily_reward_draw = False
+    return user
+
+
+def update_task_attr(user: User, attr: str):
+    old_value = getattr(user, attr)
+    new_value = None
+    if isinstance(old_value, int):
+        new_value = old_value + 1
+    if isinstance(old_value, bool):
+        new_value = True
+    if new_value:
+        setattr(user, attr, new_value)
     return user
