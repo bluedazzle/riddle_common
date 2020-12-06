@@ -35,6 +35,22 @@ class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, 
     datetime_type = 'timestamp'
     http_method_names = ['get']
 
+    def daily_rewards_handler(self):
+        now_time = timezone.now()
+        if self.user.daily_reward_modify.day != now_time.day:
+            self.user.daily_reward_expire = None
+            self.user.daily_reward_draw = False
+            self.user.daily_reward_stage = 20
+            self.user.daily_reward_count = 0
+            self.user.daily_reward_modify = now_time
+            if self.user.daily_sign_in == 7:
+                self.user.daily_sign_in = 0
+            self.user.daily_sign_in += 1
+        if self.user.daily_reward_expire:
+            if now_time > self.user.daily_reward_expire:
+                self.user.daily_reward_draw = False
+        return self.user.daily_reward_count
+
     def get_object(self, queryset=None):
         return self.user
 

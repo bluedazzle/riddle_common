@@ -241,7 +241,7 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
         token = info['token']
         if not self.check_token_result(token):
             return JsonResponse({'isValid': False})
-        cash = client_redis_riddle.get(str(self.user.id) + 'cash')
+        cash = client_tredis_riddle.get(str(self.user.id) + 'cash')
         if cash:
             self.user.cash += int(cash)
             client_redis_riddle.delete(str(self.user.id) + 'cash')
