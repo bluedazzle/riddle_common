@@ -12,7 +12,7 @@ from django.views.generic import DetailView
 from baseconf.models import TaskConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import get_daily_task_config_from_cache, set_daily_task_config_to_cache, \
-    get_common_task_config_from_cache, set_common_task_config_to_cache, search_task_id, search_task_id_by_cache, \
+    get_common_task_config_from_cache, set_common_task_config_to_cache, search_task_id_by_cache, \
     set_task_id_to_cache
 from core.consts import TASK_OK, TASK_DOING, TASK_TYPE_DAILY, TASK_TYPE_COMMON
 from core.dss.Mixin import CheckTokenMixin, JsonResponseMixin

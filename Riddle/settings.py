@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'finance',
     'baseconf',
     'event',
+    'task',
    'django_prometheus',
 ]
 

@@ -5,7 +5,7 @@ import json
 import datetime
 
 from account.models import User
-from core.cache import search_task_id
+from core.cache import search_task_id_by_cache
 from core.consts import TASK_DOING, TASK_OK, TASK_FINISH, TASK_TYPE_DAILY, TASK_TYPE_COMMON
 from task.models import DailyTask, CommonTask
 
@@ -28,7 +28,7 @@ def create_task(user_id, target, task_slug: str, title_template, *args, **kwargs
     status = TASK_DOING
     if target >= kwargs.get("level"):
         status = TASK_OK
-    if search_task_id(task_id):
+    if search_task_id_by_cache(task_id):
         status = TASK_FINISH
     task['status'] = status
     return task
