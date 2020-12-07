@@ -29,6 +29,7 @@ from core.utils import get_global_conf
 from core.wx import send_money_by_open_id
 from finance.forms import CashRecordForm, ExchangeRecordForm
 from finance.models import CashRecord, ExchangeRecord, RedPacket
+from task.utils import update_task_attr
 
 
 class CashRecordListView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, ListView):
@@ -153,6 +154,7 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
                 if cash == obj.new_withdraw_threshold:
                     self.user.new_withdraw = False
         cash_record.save()
+        update_task_attr(self.user, 'daily_withdraw')
         self.user.save()
         return self.render_to_response(dict())
 
@@ -184,6 +186,7 @@ class CreateExchangeRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixi
     def form_valid(self, form):
         try:
             super(CreateExchangeRecordView, self).form_valid(form)
+            update_task_attr(self.user, 'daily_coin_exchange')
             cash = self.exchange_cash(form.cleaned_data.get('coin', 0))
             exchange_record = form.save()
             exchange_record.belong = self.user
@@ -364,5 +367,6 @@ class LuckyDrawView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateV
         if not self.user.daily_reward_draw:
             self.update_status(StatusCode.ERROR_REWARD_DENIED)
             return self.render_to_response()
+        update_task_attr(self.user, 'daily_lucky_draw')
         rp = self.get_reward()
         return self.render_to_response({'reward': rp})

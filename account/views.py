@@ -27,6 +27,7 @@ from core.wx import get_access_token_by_code, get_user_info, send_money_by_open_
 from core.consts import DEFAULT_SONGS_BONUS_THRESHOLD, STATUS_REVIEW, STATUS_FINISH, STATUS_FAIL
 from core.dss.Serializer import serializer
 from finance.models import CashRecord
+from task.utils import daily_task_attr_reset, update_task_attr
 
 
 class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, DetailView):
@@ -35,8 +36,13 @@ class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, 
     datetime_type = 'timestamp'
     http_method_names = ['get']
 
+    def daily_rewards_handler(self):
+        user = daily_task_attr_reset(self.user)
+        user.save()
+        return user
+
     def get_object(self, queryset=None):
-        return self.user
+        return self.daily_rewards_handler()
 
     def get(self, request, *args, **kwargs):
         return super(UserInfoView, self).get(self, request, *args, **kwargs)

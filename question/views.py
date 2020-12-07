@@ -9,6 +9,8 @@ import math
 import logging
 
 import datetime
+
+from django.db import transaction
 from django.http import JsonResponse
 from django.views.generic import DetailView
 from django.utils import timezone
@@ -21,9 +23,11 @@ from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
+from event.models import ObjectEvent
 from question.models import Question
 from account.models import User
 from core.Mixin.ABTestMixin import ABTestMixin
+from task.utils import daily_task_attr_reset, update_task_attr
 
 
 class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
@@ -59,6 +63,13 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
     count = 32
     conf = {}
 
+    def add_event(self):
+        event = ObjectEvent()
+        event.object = 'SONG'
+        event.action = 'ANSWER'
+        event.user_id = self.user.id
+        event.save()
+
     def handler_default(self, *args, **kwargs):
         cash = int(
             max((kwargs.get('round_cash') - self.user.cash) / (kwargs.get('round_count') - self.user.current_step) * (
@@ -85,16 +96,10 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
        return cash
 
     def daily_rewards_handler(self):
-        now_time = timezone.now()
-        if self.user.daily_reward_modify.day != now_time.day:
-            self.user.daily_reward_expire = None
-            self.user.daily_reward_draw = False
-            self.user.daily_reward_stage = 20
-            self.user.daily_reward_count = 0
-        if self.user.daily_reward_expire:
-            if now_time > self.user.daily_reward_expire:
-                self.user.daily_reward_draw = False
+        now_time = timezone.localtime()
+        self.user = daily_task_attr_reset(self.user)
         self.user.daily_reward_count += 1
+        self.user.daily_right_count += 1
         if self.user.daily_reward_count == self.user.daily_reward_stage:
             self.user.daily_reward_draw = True
             self.user.daily_reward_expire = now_time + datetime.timedelta(minutes=10)
@@ -102,7 +107,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         self.user.daily_reward_modify = now_time
         return self.user.daily_reward_count
 
-
+    @transaction.atomic()
     def get(self, request, *args, **kwargs):
         reward_count = DEFAULT_REWARD_COUNT
         version = int(request.GET.get('version', 0))
@@ -177,6 +182,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         self.user.current_level += 1
         self.daily_rewards_handler()
         self.user.save()
+        self.add_event()
         return self.render_to_response(
             {'answer': True, 'cash': cash, 'reward': reward, 'reward_url': reward_url, 'video': video, 'continu': self.user.continu_count})
 
@@ -194,6 +200,7 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
             cash = client_redis_riddle.get(str(self.user.id) + 'cash')
             if cash:
                 try:
+                    update_task_attr(self.user, 'daily_watch_ad')
                     cash = int(cash)
                     self.user.cash += cash
                     client_redis_riddle.delete(str(self.user.id) + 'cash')
