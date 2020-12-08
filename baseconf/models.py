@@ -13,7 +13,7 @@ from account.models import BaseModel
 # Create your models here.
 from core.cache import set_global_config_to_cache, update_ab_test_config_from_cache, set_daily_task_config_to_cache, \
     set_common_task_config_to_cache
-from core.consts import DEFAULT_ALLOW_CASH_COUNT, DEFAULT_COIN_CASH_PROPORTION, TOTAL_LEVEL, ROUND_CASH, ROUND_COUNT, \
+from core.consts import DEFAULT_ALLOW_CASH_COUNT, DEFAULT_ALLOW_CASH_TWO, DEFAULT_ALLOW_CASH_THREE, DEFAULT_COIN_CASH_PROPORTION, TOTAL_LEVEL, ROUND_CASH, ROUND_COUNT, \
     DEFAULT_NEW_PACKET, DEFAULT_NEW_WITHDRAW_THRESHOLD, DEFAULT_FIRST_WITHDRAW_THRESHOLD, \
     DEFAULT_SECOND_WITHDRAW_THRESHOLD, DEFAULT_THIRD_WITHDRAW_THRESHOLD, DEFAULT_ALLOW_CASH_RIGHT_COUNT, STATUS_FAIL, \
     STATUS_DESTROY, STATUS_FINISH, STATUS_ENABLE, STATUS_PAUSE
@@ -30,6 +30,8 @@ class GlobalConf(ExportModelOperationsMixin("GlobalConf"), BaseModel):
     const_num = models.IntegerField(default=0)
     new_red_packet = models.IntegerField(default=DEFAULT_NEW_PACKET)
     allow_cash_count = models.IntegerField(default=DEFAULT_ALLOW_CASH_COUNT, verbose_name='提现金额门槛(单位: 分)')
+    allow_cash_two = models.IntegerField(default=DEFAULT_ALLOW_CASH_TWO, verbose_name='提现金额门槛2(单位: 分)')
+    allow_cash_three = models.IntegerField(default=DEFAULT_ALLOW_CASH_THREE, verbose_name='提现金额门槛3(单位: 分)')
     allow_cash_right_number = models.IntegerField(default=DEFAULT_ALLOW_CASH_RIGHT_COUNT, verbose_name='提现题目门槛')
     perfect_level = models.IntegerField(default=29897)
 
