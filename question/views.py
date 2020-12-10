@@ -78,22 +78,21 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
 
     def handler_b(self, *args, **kwargs):
         cash = int(max((29800 - self.user.cash) / (1000 - self.user.current_step) * (
-                17 - 16 * self.user.current_step / 1000) * kwargs.get('rand_num'), 1)) + kwargs.get('const_num')
+            17 - 16 * self.user.current_step / 1000) * kwargs.get('rand_num'), 1)) + kwargs.get('const_num')
 
         return cash
 
-
     def new_version_handler(self):
-       cash_list = [1888, 243, 221, 198, 212, 176, 142, 158, 129, 105]
+        cash_list = [1888, 243, 221, 198, 212, 176, 142, 158, 129, 105]
 
-       if self.user.current_level <= 10:
-           cash = cash_list[self.user.current_level - 1]
-       else:
-           rand_num = random.random() * (120 - 20) + 20
-           cash = 50 - (math.floor((self.user.current_level - 10) / 10) * 1) + rand_num
-           cash = int(max(cash, 1))
+        if self.user.current_level <= 10:
+            cash = cash_list[self.user.current_level - 1]
+        else:
+            rand_num = random.random() * (120 - 20) + 20
+            cash = 50 - (math.floor((self.user.current_level - 10) / 10) * 1) + rand_num
+            cash = int(max(cash, 1))
 
-       return cash
+        return cash
 
     def daily_rewards_handler(self):
         now_time = timezone.localtime()
@@ -132,7 +131,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         rand_num = random.random() * (high_range - low_range) + low_range
         cash = self.ab_test_handle(slug='2981716', round_cash=round_cash, round_count=round_count, rand_num=rand_num)
         if version >= 20112400 and version <= 20113099:
-           cash = self.new_version_handler()
+            cash = self.new_version_handler()
 
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
 
@@ -151,21 +150,21 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         if obj.right_answer_id != aid and self.user.current_level != 1:
             self.user.wrong_count += 1
             self.user.reward_count = 0
-            client_redis_riddle.set(str(self.user.id) + 'continu', self.user.continu_count)
-            self.user.continu_count = 0
+            client_redis_riddle.set(str(self.user.id) + 'continue', self.user.continue_count)
+            self.user.continue_count = 0
             if self.user.current_level == 1185:
                 self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
             return self.render_to_response(
-                {'answer': False, 'cash': 0, 'reward': False, 'reward_url': '', 'video': video, 'continu': 0})
+                {'answer': False, 'cash': 0, 'reward': False, 'reward_url': '', 'video': video, 'continue': 0})
 
         if self.user.current_step == round_count:
             self.user.current_step = 0
         self.user.current_step += 1
         self.user.right_count += 1
         self.user.reward_count += 1
-        self.user.continu_count = min(199, self.user.continu_count + 1)
+        self.user.continue_count = min(199, self.user.continue_count + 1)
         self.user.cash += cash
         reward = False
         reward_url = ''
@@ -184,7 +183,8 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         self.user.save()
         self.add_event()
         return self.render_to_response(
-            {'answer': True, 'cash': cash, 'reward': reward, 'reward_url': reward_url, 'video': video, 'continu': self.user.continu_count})
+            {'answer': True, 'cash': cash, 'reward': reward, 'reward_url': reward_url, 'video': video,
+             'continue': self.user.continue_count})
 
 
 class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
@@ -207,12 +207,12 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
                 except Exception as e:
                     logging.exception(e)
         if resurge == "1":
-            continu = client_redis_riddle.get(str(self.user.id) + 'continu')
-            if continu:
+            continue_value = client_redis_riddle.get(str(self.user.id) + 'continue')
+            if continue_value:
                 try:
-                    continu = int(continu)
-                    self.user.continu_count = continu
-                    client_redis_riddle.delete(str(self.user.id) + 'contins')
+                    continue_value = int(continue_value)
+                    self.user.continue_count = continue_value
+                    client_redis_riddle.delete(str(self.user.id) + 'continue')
                 except Exception as e:
                     logging.exception(e)
         self.user.save()

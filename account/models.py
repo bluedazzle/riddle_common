@@ -42,7 +42,7 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
     cash_extend_times = models.IntegerField(default=NEW_EXTEND_TIMES)
     expire_time = models.DateTimeField(default=timezone.now)
     reward_count = models.IntegerField(default=0)
-    continu_count = models.IntegerField(default=0)
+    continue_count = models.IntegerField(default=0)
     right_count = models.IntegerField(default=0)
     wrong_count = models.IntegerField(default=0)
     songs_count = models.IntegerField(default=0)
