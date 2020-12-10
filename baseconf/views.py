@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 # Create your views here.
+import json
+import logging
 
 from django.views.generic import DetailView, ListView
 
@@ -19,8 +21,18 @@ class GlobalConfView(StatusWrapMixin, JsonResponseMixin, DetailView):
 
     exclude_attr = ['allow_cash_right_number']
 
+    @staticmethod
+    def format_list(json_format):
+        ret_list = []
+        try:
+            ret_list = json.loads(json_format)
+        except Exception as e:
+            logging.exception(e)
+        return ret_list
+
     def get(self, request, *args, **kwargs):
         conf = get_global_conf()
+        conf['allow_cash_list'] = self.format_list(conf['allow_cash_list'])
         return self.render_to_response(conf)
 
 

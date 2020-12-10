@@ -30,6 +30,7 @@ class GlobalConf(ExportModelOperationsMixin("GlobalConf"), BaseModel):
     const_num = models.IntegerField(default=0)
     new_red_packet = models.IntegerField(default=DEFAULT_NEW_PACKET)
     allow_cash_count = models.IntegerField(default=DEFAULT_ALLOW_CASH_COUNT, verbose_name='提现金额门槛(单位: 分)')
+    allow_cash_list = models.TextField(max_length=200, default='["30000", "50000", "80000"]', verbose_name='提现金额门槛列表(单位: 分)')
     allow_cash_right_number = models.IntegerField(default=DEFAULT_ALLOW_CASH_RIGHT_COUNT, verbose_name='提现题目门槛')
     perfect_level = models.IntegerField(default=29897)
 
