@@ -3,6 +3,7 @@ import hashlib
 import json
 
 import datetime
+import random
 
 from django.db.models import BooleanField
 from django.utils import timezone
@@ -13,15 +14,21 @@ from core.consts import TASK_DOING, TASK_OK, TASK_FINISH, TASK_TYPE_DAILY, TASK_
 from task.models import DailyTask, CommonTask
 
 
-def create_task(user_id, target, task_slug: str, title_template, *args, **kwargs):
+def create_task(user: User, target, task_slug: str, title_template, *args, **kwargs):
     task_slug = task_slug.upper()
     task = {'current_level': target}
     task.update(kwargs)
-    if task_slug.startswith('DAILY_'):
+    if task_slug == 'DAILY_TASK_SIGN':
+        if not user.daily_sign_in_token:
+            user.daily_sign_in_token = create_token()
+        sign_token = user.daily_sign_in_token
+        unique_str = ','.join(
+            [str(user.id), task_slug, str(kwargs.get("level")), str(kwargs.get("reward")), str(sign_token)])
+    elif task_slug.startswith('DAILY_'):
         date = datetime.date.today()
-        unique_str = ','.join([str(user_id), task_slug, str(kwargs.get("level")), str(kwargs.get("reward")), str(date)])
+        unique_str = ','.join([str(user.id), task_slug, str(kwargs.get("level")), str(kwargs.get("reward")), str(date)])
     else:
-        unique_str = ','.join([str(user_id), task_slug, str(kwargs.get("level")), str(kwargs.get("reward"))])
+        unique_str = ','.join([str(user.id), task_slug, str(kwargs.get("level")), str(kwargs.get("reward"))])
     task_id = hashlib.md5(unique_str.encode(encoding='UTF-8')).hexdigest()
     task['id'] = task_id
     task['title'] = title_template.format(kwargs.get("level"))
@@ -76,6 +83,7 @@ def daily_task_attr_reset(user: User):
         user.daily_withdraw = False
         if user.daily_sign_in == 7:
             user.daily_sign_in = 0
+            user.daily_sign_in_token = create_token()
         user.daily_sign_in += 1
     if user.daily_reward_expire:
         if now_time > user.daily_reward_expire:
@@ -93,3 +101,11 @@ def update_task_attr(user: User, attr: str):
     if new_value:
         setattr(user, attr, new_value)
     return user
+
+
+def create_token(count=32):
+    count = 62 if count > 62 else count
+    token = ''.join(
+        random.sample('ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
+                      count)).replace(" ", "")
+    return token

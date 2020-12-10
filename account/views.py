@@ -35,6 +35,8 @@ class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, 
     slug_field = 'token'
     datetime_type = 'timestamp'
     http_method_names = ['get']
+    exclude_attr = ['daily_sign_in_token', 'daily_sign_in', 'daily_watch_ad', 'daily_withdraw', 'daily_lucky_draw',
+                    'daily_coin_exchange', 'daily_reward_modify']
 
     def daily_rewards_handler(self):
         user = daily_task_attr_reset(self.user)
@@ -224,7 +226,7 @@ class UserShareView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin,
     def get_context_data(self, **kwargs):
         context = super(UserShareView, self).get_context_data(**kwargs)
         context['user_list'] = serializer(context['user_list'], output_type='raw', include_attr=(
-        'name', 'avatar', 'cash', 'current_level', 'id', 'right_count', 'login_bonus', 'songs_bonus'))
+            'name', 'avatar', 'cash', 'current_level', 'id', 'right_count', 'login_bonus', 'songs_bonus'))
         context['invite_code'] = self.user.invite_code
         context['song_threshold'] = DEFAULT_SONGS_BONUS_THRESHOLD
         return context

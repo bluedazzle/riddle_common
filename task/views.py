@@ -43,15 +43,19 @@ class DailyTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
         self.get_daily_task_config()
         daily_task_list = []
         task_ok = 0
+        stk = self.user.daily_sign_in_token
         for task in self.task_config:
             target = self.format_target(getattr(self.user, task.get("target")))
             title = task.get("title")
             for itm in task.get("detail"):
-                task = create_task(self.user.id, target, task.get("slug"), title, **itm)
+                task = create_task(self.user, target, task.get("slug"), title, **itm)
                 if task.get("status") == TASK_OK:
                     task_ok += 1
                 daily_task_list.append(task)
         daily_task_list.sort(key=lambda x: x.get("status"))
+        if stk != self.user.daily_sign_in_token:
+            # 更新 sign_token 时保存 user
+            self.user.save()
         return self.render_to_response({"daily_task": daily_task_list, 'task_ok_count': task_ok})
 
 
@@ -82,7 +86,7 @@ class CommonTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, De
             target = self.format_target(getattr(self.user, task.get("target")))
             title = task.get("title")
             for itm in task.get("detail"):
-                task = create_task(self.user.id, target, task.get("slug"), title, **itm)
+                task = create_task(self.user, target, task.get("slug"), title, **itm)
                 if task.get("status") == TASK_OK:
                     task_ok += 1
                 common_task_list.append(task)
@@ -142,7 +146,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
         for task in conf:
             title = task.get("title")
             for itm in task.get("detail"):
-                task = create_task(self.user.id, 0, task.get("slug"), title, **itm)
+                task = create_task(self.user, 0, task.get("slug"), title, **itm)
                 task_dict[task.get('id')] = task
         return task_dict
 

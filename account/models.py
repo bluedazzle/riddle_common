@@ -68,6 +68,7 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
     daily_right_count = models.IntegerField(default=0)
     daily_watch_ad = models.IntegerField(default=0)
     daily_sign_in = models.IntegerField(default=0)
+    daily_sign_in_token = models.CharField(max_length=64, default='')
 
     def __unicode__(self):
         return '{0}'.format(self.name)
