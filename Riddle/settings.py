@@ -156,11 +156,11 @@ STATIC_MEDIA = './static/'
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = (
-"http://cai-ta.ecdn.plutus-cat.com", "https://cai-ta.ecdn.plutus-cat.com", "http://appweb.ecdn.plutus-cat.com/",
-"https://appweb.ecdn.plutus-cat.com/")
+"http://cai-ta.ecdn.plutus-cat.com", "https://cai-ta.ecdn.plutus-cat.com", "http://appweb.ecdn.plutus-cat.com",
+"https://appweb.ecdn.plutus-cat.com")
 CORS_ALLOWED_ORIGINS = ["http://cai-ta.ecdn.plutus-cat.com",
-                        "https://cai-ta.ecdn.plutus-cat.com", "http://appweb.ecdn.plutus-cat.com/",
-                        "https://appweb.ecdn.plutus-cat.com/"]
+                        "https://cai-ta.ecdn.plutus-cat.com", "http://appweb.ecdn.plutus-cat.com",
+                        "https://appweb.ecdn.plutus-cat.com"]
 
 # init dependency
 config_client_redis_zhz()
