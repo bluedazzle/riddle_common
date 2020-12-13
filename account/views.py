@@ -73,6 +73,7 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
         user.device_id = device_id
         user.token = self.create_token()
         user.name = self.create_name()
+        user.daily_sign_in = 1
         user.expire_time = timezone.now() + datetime.timedelta(days=3)
         invite_code = self.create_invite_code()
         objs = self.model.objects.filter(invite_code=invite_code).all()

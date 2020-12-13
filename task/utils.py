@@ -9,9 +9,25 @@ from django.db.models import BooleanField
 from django.utils import timezone
 
 from account.models import User
-from core.cache import search_task_id_by_cache
+from core.cache import search_task_id_by_cache, set_task_id_to_cache
 from core.consts import TASK_DOING, TASK_OK, TASK_FINISH, TASK_TYPE_DAILY, TASK_TYPE_COMMON
 from task.models import DailyTask, CommonTask
+
+
+def valid_task(slug, task_id):
+    if search_task_id_by_cache(task_id):
+        return True
+    if slug.startswith('DAILY_'):
+        objs = DailyTask.objects.filter(task_id=task_id).all()
+    else:
+        objs = CommonTask.objects.filter(task_id=task_id).all()
+    if objs.exists():
+        if slug.startswith('DAILY_'):
+            set_task_id_to_cache(task_id, 3600 * 24)
+        else:
+            set_task_id_to_cache(task_id)
+        return True
+    return False
 
 
 def create_task(user: User, target, task_slug: str, title_template, *args, **kwargs):
@@ -38,7 +54,7 @@ def create_task(user: User, target, task_slug: str, title_template, *args, **kwa
     status = TASK_DOING
     if target >= kwargs.get("level"):
         status = TASK_OK
-    if search_task_id_by_cache(task_id):
+    if valid_task(task_slug, task_id):
         status = TASK_FINISH
     task['status'] = status
     return task
